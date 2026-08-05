@@ -350,14 +350,12 @@ function renderLivePermanentScoreboard() {
 
     let html = "";
 
-    // Common Table Styling for Professional Look
     let tableStyle = "width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; margin-bottom: 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden;";
     let thStyle = "background: #1e293b; color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;";
     let thCenter = "background: #1e293b; color: #fff; padding: 8px 6px; text-align: center; font-weight: 600; font-size: 11px; text-transform: uppercase;";
     let tdStyle = "padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #334155;";
     let tdCenter = "padding: 8px 6px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #334155;";
 
-    // 1st Innings View
     if (firstInnings) {
         let fOvers = firstInnings.overs || "0.0";
         html += `<div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
@@ -366,7 +364,6 @@ function renderLivePermanentScoreboard() {
                 <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #475569;">${firstInnings.score}/${firstInnings.wickets} (${fOvers} Ov)</span>
             </div>`;
 
-        // 1st Innings Batting Table
         if (firstInnings.playerStats && Object.keys(firstInnings.playerStats).length > 0) {
             html += `<div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">Batting Scorecard</div>`;
             html += `<table style="${tableStyle}">
@@ -398,7 +395,6 @@ function renderLivePermanentScoreboard() {
             html += `</tbody></table>`;
         }
 
-        // 1st Innings Bowling Table
         if (firstInnings.bowlerStats && Object.keys(firstInnings.bowlerStats).length > 0) {
             html += `<div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">Bowling Scorecard</div>`;
             html += `<table style="${tableStyle}">
@@ -430,7 +426,6 @@ function renderLivePermanentScoreboard() {
         html += `</div>`;
     }
 
-    // Current / Live Innings View
     let currentBattingTeam = matchInfo ? matchInfo.battingTeam : "Batting Team";
     let overs = Math.floor(legalBalls / 6) + "." + (legalBalls % 6);
 
@@ -440,7 +435,6 @@ function renderLivePermanentScoreboard() {
             <span style="background: #dcfce7; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #166534; border: 1px solid #86efac;">${currentScore}/${currentWickets} (${overs} Ov)</span>
         </div>`;
 
-    // Current Batting Table
     if (Object.keys(playerStats).length > 0) {
         html += `<div style="font-size: 11px; font-weight: 600; color: #15803d; margin-bottom: 4px; text-transform: uppercase;">Batting Scorecard</div>`;
         html += `<table style="${tableStyle}">
@@ -478,7 +472,6 @@ function renderLivePermanentScoreboard() {
         html += `<div style="font-size: 12px; color: #64748b; margin-bottom: 8px; font-style: italic;">Batting: No players selected yet.</div>`;
     }
 
-    // Current Bowling Table
     if (Object.keys(bowlerStats).length > 0) {
         html += `<div style="font-size: 11px; font-weight: 600; color: #15803d; margin-bottom: 4px; text-transform: uppercase;">Bowling Scorecard</div>`;
         html += `<table style="${tableStyle}">
@@ -668,14 +661,11 @@ function handleInningsEnd() {
         location.href = "history.html";
     }
 }
-// ==========================================
-// 🔗 BATCH ALIAS FUNCTIONS (બધાજ બટન નામો માટે સપોર્ટ)
-// ==========================================
+
 function matchHistory() {
     executeMatchSave();
 }
 
-// 🛠️ અસલી સેવિંગ લોજિક (ફિક્સ કરેલું)
 function executeMatchSave() {
     if (confirm("શું તમે મેચ પૂરી કરીને સેવ કરવા માંગો છો?")) {
         try {
@@ -706,7 +696,6 @@ function executeMatchSave() {
                 manOfTheMatch: mom
             };
 
-            // બંને લોકલ સ્ટોરેજ કીમાં સેવ કરો જેથી હિસ્ટ્રી પેજ ગમે તે નામથી ડેટા વાંચતું હોય તો પણ મેચ દેખાઈ જાય
             let matchHistoryArr = JSON.parse(localStorage.getItem("matchHistory")) || [];
             matchHistoryArr.unshift(matchRecord);
             localStorage.setItem("matchHistory", JSON.stringify(matchHistoryArr));
@@ -715,7 +704,6 @@ function executeMatchSave() {
             savedMatches.unshift(matchRecord);
             localStorage.setItem("savedMatches", JSON.stringify(savedMatches));
 
-            // લાઈવ ડેટા સાફ કરો
             localStorage.removeItem("liveMatchScore");
             localStorage.removeItem("currentMatch");
             localStorage.removeItem("firstInnings");
