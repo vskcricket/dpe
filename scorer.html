@@ -816,7 +816,7 @@
                         matchData.striker = matchData.nonStriker;
                         matchData.nonStriker = '';
                     } else {
-                        matchData.striker = '';
+                        matchData.striker = outBatsman;
                     }
 
                     saveAndRefresh();
@@ -942,18 +942,25 @@
             };
 
             let bestPlayer = '-';
-            let maxRuns = -1;
-            let allBatters = {...matchData.batsmanStats};
-            if (matchData.firstInningSummary && matchData.firstInningSummary.batsmanStats) {
-                allBatters = {...matchData.firstInningSummary.batsmanStats, ...allBatters};
-            }
+            let maxPoints = -1;
             
-            for (let name in allBatters) {
-                if (allBatters[name].runs > maxRuns) {
-                    maxRuns = allBatters[name].runs;
-                    bestPlayer = name + ` (${maxRuns} Runs)`;
+            let allBatters = {...(matchData.firstInningSummary?.batsmanStats || {}), ...matchData.batsmanStats};
+            let allBowlers = {...(matchData.firstInningSummary?.bowlerStats || {}), ...matchData.bowlerStats};
+            
+            let allPlayers = new Set([...Object.keys(allBatters), ...Object.keys(allBowlers)]);
+
+            allPlayers.forEach(name => {
+                let runs = allBatters[name]?.runs || 0;
+                let wickets = allBowlers[name]?.wickets || 0;
+                
+                let points = runs + (wickets * 20);
+
+                if (points > maxPoints) {
+                    maxPoints = points;
+                    bestPlayer = `${name} (${runs} Runs, ${wickets} Wickets)`;
                 }
-            }
+            });
+
             document.getElementById('momName').innerText = bestPlayer;
 
             renderCelebrationScorecards();
