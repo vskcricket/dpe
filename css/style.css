@@ -1,0 +1,46 @@
+body{font-family:Arial;}
+input{
+
+    width:100%;
+    
+    padding:15px;
+    
+    font-size:18px;
+    
+    border-radius:8px;
+    
+    border:1px solid #ccc;
+    
+    margin-bottom:15px;
+    
+    }
+    
+    .player-card{
+    
+    background:white;
+    
+    padding:15px;
+    
+    margin-top:15px;
+    
+    border-radius:10px;
+    
+    box-shadow:0 2px 5px rgba(0,0,0,.2);
+    
+    }
+    
+    .player-card h3{
+    
+    margin-bottom:10px;
+    
+    }
+    
+    .player-card button{
+    
+    width:auto;
+    
+    padding:10px 15px;
+    
+    margin-right:10px;
+    
+    }
