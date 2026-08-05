@@ -547,6 +547,7 @@
                 if (!matchData.lastBowler) matchData.lastBowler = '';
                 if (!matchData.inning) matchData.inning = 1;
                 if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
+                if (!matchData.battingOrder) matchData.battingOrder = [];
 
                 initializePlayerStats(matchData.striker);
                 initializePlayerStats(matchData.nonStriker);
@@ -567,6 +568,10 @@
         function initializePlayerStats(name) {
             if (name && name !== '-' && !matchData.batsmanStats[name]) {
                 matchData.batsmanStats[name] = { runs: 0, balls: 0, fours: 0, sixes: 0, status: 'batting', outBy: '' };
+                if (!matchData.battingOrder) matchData.battingOrder = [];
+                if (!matchData.battingOrder.includes(name)) {
+                    matchData.battingOrder.push(name);
+                }
             }
         }
 
@@ -631,8 +636,18 @@
         function renderBattingTable() {
             let tbody = document.getElementById('battingTableBody');
             tbody.innerHTML = '';
+            
+            let order = matchData.battingOrder || [];
+            // જો કોઈ બેટ્સમેન લિસ્ટમાં રહી ગયો હોય તો તેને ઉમેરી દેવા માટે
             for (let name in matchData.batsmanStats) {
+                if (!order.includes(name)) {
+                    order.push(name);
+                }
+            }
+
+            order.forEach(name => {
                 let p = matchData.batsmanStats[name];
+                if (!p) return;
                 let sr = p.balls > 0 ? ((p.runs / p.balls) * 100).toFixed(1) : '0.0';
                 
                 let displayStatus = '';
@@ -654,7 +669,7 @@
                     <td>${p.sixes}</td>
                     <td>${sr}</td>
                 </tr>`;
-            }
+            });
         }
 
         function renderBowlingTable() {
@@ -845,7 +860,8 @@
                     wickets: matchData.wickets,
                     balls: matchData.balls,
                     batsmanStats: JSON.parse(JSON.stringify(matchData.batsmanStats)),
-                    bowlerStats: JSON.parse(JSON.stringify(matchData.bowlerStats))
+                    bowlerStats: JSON.parse(JSON.stringify(matchData.bowlerStats)),
+                    battingOrder: JSON.parse(JSON.stringify(matchData.battingOrder || []))
                 };
 
                 alert(`1st Innings પૂરી થઈ! ${matchData.battingTeam} એ ${matchData.score} રન કર્યા છે.\n🎯 ${matchData.bowlingTeam} માટે જીતવા માટે ${matchData.score + 1} રનનો ટાર્ગેટ છે!`);
@@ -863,6 +879,7 @@
                 matchData.lastBowler = '';
                 matchData.batsmanStats = {};
                 matchData.bowlerStats = {};
+                matchData.battingOrder = [];
                 matchData.currentOverBalls = [];
 
                 saveAndRefresh();
@@ -897,7 +914,7 @@
             let html = `<p style="margin-bottom:6px; color:#38bdf8;"><strong>Team:</strong> ${sum.battingTeam}</p>`;
             html += `<p style="margin-bottom:8px;"><strong>Score:</strong> ${sum.score} / ${sum.wickets} (${Math.floor(sum.balls/6)}.${sum.balls%6} Overs)</p>`;
             
-            html += generateMiniScorecardHTML(sum.batsmanStats, sum.bowlerStats);
+            html += generateMiniScorecardHTML(sum.batsmanStats, sum.bowlerStats, sum.battingOrder);
 
             document.getElementById('inningsModalBody').innerHTML = html;
             document.getElementById('inningsModal').style.display = 'flex';
@@ -917,7 +934,8 @@
                 wickets: matchData.wickets,
                 balls: matchData.balls,
                 batsmanStats: JSON.parse(JSON.stringify(matchData.batsmanStats)),
-                bowlerStats: JSON.parse(JSON.stringify(matchData.bowlerStats))
+                bowlerStats: JSON.parse(JSON.stringify(matchData.bowlerStats)),
+                battingOrder: JSON.parse(JSON.stringify(matchData.battingOrder || []))
             };
 
             let bestPlayer = '-';
@@ -939,15 +957,18 @@
             document.getElementById('celebrationModal').style.display = 'flex';
         }
 
-        function generateMiniScorecardHTML(pStats, bStats) {
+        function generateMiniScorecardHTML(pStats, bStats, orderList) {
             let html = `<p style="color:#facc15; font-weight:700; margin-bottom:4px; font-size:11px;">📊 Batting Scorecard</p>`;
             html += `<table style="width:100%; margin-bottom:8px; border-collapse:collapse;">`;
             html += `<tr style="border-bottom:1px solid #334155; color:#94a3b8;"><th>Batsman</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>Status</th></tr>`;
-            for (let name in pStats) {
+            
+            let sortedBatters = orderList || Object.keys(pStats);
+            sortedBatters.forEach(name => {
                 let b = pStats[name];
+                if (!b) return;
                 let statusText = (b.status === 'out') ? `<span style="color:#ef4444;">Out (${b.outBy || '-'})</span>` : `<span style="color:#38bdf8;">Not Out*</span>`;
                 html += `<tr><td><b>${name}</b></td><td><b>${b.runs}</b></td><td>${b.balls}</td><td>${b.fours}</td><td>${b.sixes}</td><td>${statusText}</td></tr>`;
-            }
+            });
             html += `</table>`;
 
             html += `<p style="color:#facc15; font-weight:700; margin-bottom:4px; font-size:11px;">⚾ Bowling Figures</p>`;
@@ -973,7 +994,7 @@
                 let fOvers = Math.floor(f.balls / 6) + '.' + (f.balls % 6);
                 html += `<div style="background: rgba(30,41,59,0.7); border: 1px solid rgba(56,189,248,0.3); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
                     <h4 style="color: #facc15; font-size: 12px; margin-bottom: 4px;">🏏 1st Innings: ${f.battingTeam} - ${f.score}/${f.wickets} (${fOvers} Overs)</h4>
-                    ${generateMiniScorecardHTML(f.batsmanStats, f.bowlerStats)}
+                    ${generateMiniScorecardHTML(f.batsmanStats, f.bowlerStats, f.battingOrder)}
                 </div>`;
             }
 
@@ -982,14 +1003,13 @@
                 let sOvers = Math.floor(matchData.balls / 6) + '.' + (matchData.balls % 6);
                 html += `<div style="background: rgba(30,41,59,0.7); border: 1px solid rgba(56,189,248,0.3); border-radius: 10px; padding: 10px;">
                     <h4 style="color: #facc15; font-size: 12px; margin-bottom: 4px;">🏏 2nd Innings: ${s.battingTeam} - ${s.score}/${s.wickets} (${sOvers} Overs)</h4>
-                    ${generateMiniScorecardHTML(s.batsmanStats, s.bowlerStats)}
+                    ${generateMiniScorecardHTML(s.batsmanStats, s.bowlerStats, s.battingOrder)}
                 </div>`;
             }
 
             container.innerHTML = html;
         }
 
-        // મેચ પૂરી થયા પછી ઓટોમેટિક હિસ્ટ્રીમાં સેવ કરવા માટેનું ફંક્શન
         function saveMatchToHistoryAndHome() {
             let historyData = {
                 teams: `${matchData.team1} vs ${matchData.team2}`,
@@ -1095,6 +1115,10 @@
                 matchData.nonStriker = ns;
                 matchData.bowler = b;
 
+                if (!matchData.battingOrder) matchData.battingOrder = [];
+                if (!matchData.battingOrder.includes(s)) matchData.battingOrder.push(s);
+                if (!matchData.battingOrder.includes(ns)) matchData.battingOrder.push(ns);
+
                 initializePlayerStats(s);
                 initializePlayerStats(ns);
                 initializeBowlerStats(b);
@@ -1124,6 +1148,10 @@
                     matchData.bowlerStats[bowler].wickets += 1;
 
                     matchData.striker = selectedVal;
+                    if (!matchData.battingOrder) matchData.battingOrder = [];
+                    if (!matchData.battingOrder.includes(selectedVal)) {
+                        matchData.battingOrder.push(selectedVal);
+                    }
                     initializePlayerStats(selectedVal);
                 } else if (popupType === 'new_bowler') {
                     matchData.bowler = selectedVal;
