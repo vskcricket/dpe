@@ -1130,7 +1130,8 @@
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
 
-                html += '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="p2"><option value="">-- Select Non-Striker --</option>';
+                // Non-Striker માટે "-" (Solo Player) ઓપ્શન ઉમેરવામાં આવ્યો છે
+                html = html + '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="p2"><option value="-">- (Solo Player / કોઈ નહીં) -</option>';
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
 
@@ -1151,25 +1152,27 @@
                 let ns = document.getElementById('p2').value;
                 let b = document.getElementById('p3').value;
 
-                if (!s || !ns || !b) {
-                    alert('કૃપા કરીને Striker, Non-Striker અને Bowler ત્રણેય સિલેક્ટ કરો!');
+                if (!s || !b) {
+                    alert('કૃપા કરીને Striker અને Bowler સિલેક્ટ કરો!');
                     return;
                 }
-                if (s === ns) {
+                if (s === ns && ns !== '-') {
                     alert('સ્ટ્રાઈકર અને નોન-સ્ટ્રાઈકર અલગ હોવા જોઈએ!');
                     return;
                 }
 
                 matchData.striker = s;
-                matchData.nonStriker = ns;
+                matchData.nonStriker = (ns === '-') ? '-' : ns;
                 matchData.bowler = b;
 
                 if (!matchData.battingOrder) matchData.battingOrder = [];
                 if (!matchData.battingOrder.includes(s)) matchData.battingOrder.push(s);
-                if (!matchData.battingOrder.includes(ns)) matchData.battingOrder.push(ns);
+                if (matchData.nonStriker !== '-' && !matchData.battingOrder.includes(matchData.nonStriker)) {
+                    matchData.battingOrder.push(matchData.nonStriker);
+                }
 
                 initializePlayerStats(s);
-                initializePlayerStats(ns);
+                if (matchData.nonStriker !== '-') initializePlayerStats(matchData.nonStriker);
                 initializeBowlerStats(b);
             } else if (popupType === 'new_bowler') {
                 let newBowler = document.getElementById('popupSelect').value;
@@ -1208,10 +1211,10 @@
                 } else {
                     if (matchData.nonStriker && matchData.nonStriker !== '-') {
                         matchData.striker = matchData.nonStriker;
-                        matchData.nonStriker = '';
+                        matchData.nonStriker = '-';
                     } else {
                         matchData.striker = '';
-                        matchData.nonStriker = '';
+                        matchData.nonStriker = '-';
                     }
                 }
 
