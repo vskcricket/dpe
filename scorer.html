@@ -749,6 +749,7 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
+            // જો નોન-સ્ટ્રાઈકર હાજર હોય (ડેશ ન હોય) તો જ ઓડ રન પર સ્ટ્રાઈક બદલાશે
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -764,6 +765,7 @@
             if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
+                // ઓવર પૂરી થવા પર પણ માત્ર ત્યારે જ સ્ટ્રાઈક બદલાશે જો નોન-સ્ટ્રાઈકર અસ્તિત્વમાં હોય
                 if (matchData.nonStriker && matchData.nonStriker !== '-') {
                     let temp = matchData.striker;
                     matchData.striker = matchData.nonStriker;
