@@ -741,6 +741,7 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
+            // જો નોન-સ્ટ્રાઈકર હાજર હોય તો જ રન બદલાય (સોલો પ્લેયર હોય તો એ જ સ્ટ્રાઈક પર રહે)
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -756,6 +757,12 @@
             if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
+                // ઓવર પૂરી થતાં જો સોલો પ્લેયર એકલો હોય તો સ્ટ્રાઈક બદલવાની જરૂર નથી, બાકી ઓવર બદલાય ત્યારે સ્ટ્રાઈક બદલાય
+                if (matchData.nonStriker && matchData.nonStriker !== '-') {
+                    let temp = matchData.striker;
+                    matchData.striker = matchData.nonStriker;
+                    matchData.nonStriker = temp;
+                }
                 saveAndRefresh();
                 triggerNewBowlerPopup();
             } else {
@@ -839,6 +846,7 @@
                         }
                         return;
                     } else {
+                        // **SOLO PLAYER LOGIC:** જો 9મો ખેલાડી એકલો જ રમતો હોય અને તે પણ આઉટ થાય, તો જ ઇનિંગ પૂરી થાય!
                         if (matchData.batsmanStats[outBatsman]) {
                             matchData.batsmanStats[outBatsman].status = 'out';
                             matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
@@ -1131,6 +1139,7 @@
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
 
+                // અહીં નોન-સ્ટ્રાઈકરમાં સોલો પ્લેયર (- / કોઈ નહીં) પસંદ કરવા માટેનો વિકલ્પ ઉપલબ્ધ છે
                 html += '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="p2"><option value="-">- (Solo Player / કોઈ નહીં) -</option>';
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
