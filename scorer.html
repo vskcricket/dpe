@@ -741,7 +741,6 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
-            // જો નોન-સ્ટ્રાઈકર હાજર હોય તો જ રન મુજબ સ્ટ્રાઈક બદલાશે
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -805,17 +804,15 @@
                     }
                 });
 
-                // જો નવા ખેલાડીઓ ઉપલબ્ધ ન હોય
                 if (filteredPlayers.length === 0) {
                     saveStateBeforeAction();
                     let outBatsman = matchData.striker;
                     
-                    // જો નોન-સ્ટ્રાઈકર બાકી હોય (અને તે સોલો ન હોય), તો તેને સ્ટ્રાઈકર બનાવો
                     if (matchData.nonStriker && matchData.nonStriker !== '-') {
                         if (matchData.batsmanStats[outBatsman]) {
                             matchData.batsmanStats[outBatsman].status = 'out';
                             matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
-                            matchData.batsmanStats[outBatsman].balls += 1; // બોલની ગણતરી
+                            matchData.batsmanStats[outBatsman].balls += 1;
                         }
                         matchData.wickets += 1;
                         matchData.balls += 1;
@@ -829,7 +826,7 @@
                         matchData.bowlerStats[bowler].wickets += 1;
 
                         matchData.striker = matchData.nonStriker;
-                        matchData.nonStriker = '-'; // હવે નોન-સ્ટ્રાઈકર ખાલી/સોલો થઈ જશે
+                        matchData.nonStriker = '-';
                         
                         if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                             matchData.lastBowler = matchData.bowler;
@@ -842,11 +839,10 @@
                         }
                         return;
                     } else {
-                        // જો છેલ્લો એક જ ખેલાડી સોલો રમતો હોય અને તે પણ આઉટ થાય, તો જ ઇનિંગ્સ પૂરી કરો
                         if (matchData.batsmanStats[outBatsman]) {
                             matchData.batsmanStats[outBatsman].status = 'out';
                             matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
-                            matchData.batsmanStats[outBatsman].balls += 1; // બોલની ગણતરી
+                            matchData.batsmanStats[outBatsman].balls += 1;
                         }
                         matchData.wickets += 1;
                         matchData.balls += 1;
@@ -1193,7 +1189,7 @@
                 if (matchData.batsmanStats[outBatsman]) {
                     matchData.batsmanStats[outBatsman].status = 'out';
                     matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
-                    matchData.batsmanStats[outBatsman].balls += 1; // આઉટ થનાર બેટ્સમેનના બોલ અહીં બરાબર ઉમેરાશે
+                    matchData.batsmanStats[outBatsman].balls += 1;
                 }
 
                 matchData.wickets += 1;
