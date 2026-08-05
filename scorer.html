@@ -747,6 +747,7 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
+            // જો નોન-સ્ટ્રાઈકર હાજર હોય તો જ રન મુજબ સ્ટ્રાઈક બદલાશે
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -869,9 +870,9 @@
                 }
 
                 popupType = 'new_batsman';
-                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો:';
+                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો (અથવા કન્ફર્મ કરો):';
                 
-                let html = '<select id="popupSelect"><option value="">-- Select New Batsman --</option>';
+                let html = '<select id="popupSelect"><option value="">-- No New Batsman (Continue Solo) --</option>';
                 filteredPlayers.forEach(p => {
                     html += `<option value="${p}">${p}</option>`;
                 });
@@ -1186,10 +1187,6 @@
                 initializeBowlerStats(newBowler);
             } else if (popupType === 'new_batsman') {
                 let selectedVal = document.getElementById('popupSelect').value;
-                if (!selectedVal) {
-                    alert('કૃપા કરીને નવો બેટ્સમેન સિલેક્ટ કરો!');
-                    return;
-                }
 
                 let outBatsman = matchData.striker;
                 if (matchData.batsmanStats[outBatsman]) {
@@ -1208,14 +1205,17 @@
                 matchData.bowlerStats[bowler].legalBalls += 1;
                 matchData.bowlerStats[bowler].wickets += 1;
 
-                // નિયમ મુજબ: જો સ્ટ્રાઈકર આઉટ થાય, તો નવો બેટ્સમેન સ્ટ્રાઈક પર આવશે 
-                // અને નોન-સ્ટ્રાઈકર પોતાની જગ્યા પર જ અકબંધ રહેશે.
-                matchData.striker = selectedVal;
-
-                if (!matchData.battingOrder.includes(selectedVal)) {
-                    matchData.battingOrder.push(selectedVal);
+                if (selectedVal && selectedVal !== "") {
+                    matchData.striker = selectedVal;
+                    if (!matchData.battingOrder.includes(selectedVal)) {
+                        matchData.battingOrder.push(selectedVal);
+                    }
+                    initializePlayerStats(selectedVal);
+                } else {
+                    // જો કોઈ નવો ખેલાડી ન પસંદ કર્યો હોય (એકલો જ રમતો હોય) તો ઇનિંગ્સ પૂરી થઈ જશે
+                    matchData.striker = '';
+                    matchData.nonStriker = '';
                 }
-                initializePlayerStats(selectedVal);
 
                 if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                     matchData.lastBowler = matchData.bowler;
@@ -1226,7 +1226,7 @@
             document.getElementById('popupModal').style.display = 'none';
             saveAndRefresh();
             
-            if (popupType === 'new_batsman' && matchData.balls > 0 && matchData.balls % 6 === 0) {
+            if (popupType === 'new_batsman' && matchData.balls > 0 && matchData.balls % 6 === 0 && matchData.striker) {
                 triggerNewBowlerPopup();
             } else {
                 checkInningOrOverCompletion();
