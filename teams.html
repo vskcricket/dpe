@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teams - Gully Cricket Scorer</title>
+    
+    <!-- Firebase Realtime Database SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #090d16);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            color: #f8fafc;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 18px 22px;
+            width: 100%;
+            max-width: 750px;
+            max-height: 92vh;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .top-section {
+            flex-shrink: 0;
+        }
+
+        .title-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .count-badge {
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            color: #38bdf8;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.95) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            color: #ffffff !important;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            outline: none;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"]:focus {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        .player-select-box {
+            max-height: 16vh;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+        }
+
+        .player-select-box::-webkit-scrollbar, .teams-scroll-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .player-select-box::-webkit-scrollbar-thumb, .teams-scroll-list::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .teams-scroll-list {
+            max-height: 28vh;
+            overflow-y: auto;
+            margin-top: 5px;
+            padding-right: 4px;
+        }
+
+        .team-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .team-info h4 {
+            font-size: 13px;
+            color: #38bdf8;
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+
+        .team-info p {
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 6px;
+            width: auto;
+            box-shadow: none;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 6px;
+            width: auto;
+            box-shadow: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .back-link a {
+            color: #94a3b8;
+            font-size: 11px;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-section">
+            <div class="title-header">
+                <h2>🛡️ Create & Manage Teams</h2>
+                <div class="count-badge" id="teamCount">Teams: 0</div>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="teamNameInput" placeholder="Enter team name...">
+                <p style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Select available players from Cloud:</p>
+                
+                <div class="player-select-box" id="playerSelectionContainer">
+                    <!-- Dynamic Checkboxes -->
+                </div>
+
+                <button id="saveTeamBtn" onclick="saveTeam()">Save Team</button>
+            </div>
+        </div>
+
+        <div class="teams-scroll-list" id="savedTeamsContainer">
+            <!-- Dynamic Saved Teams Cards -->
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">🏠 Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // 🛠️ Firebase કન્ફિગરેશન (તમારા પ્રોજેક્ટ મુજબ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlZjpevvcgMYmxw3qrLg2wSPyE...",
+            authDomain: "vskcricket.firebaseapp.com",
+            databaseURL: "https://vskcricket-default-rtdb.firebaseio.com",
+            projectId: "vskcricket"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let editingKey = null; // ફાયરબેઝ ટીમની યુનિક કી ટ્રેક કરવા માટે
+        let cloudPlayers = [];
+        let savedTeams = [];
+
+        // 1. Firebase માંથી રિયલ-ટાઇમ પ્લેયર્સ લોડ કરો
+        db.ref('players').on('value', (snapshot) => {
+            const data = snapshot.val();
+            cloudPlayers = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    cloudPlayers.push(data[key].name);
+                });
+            }
+            loadPlayersForTeam();
+        });
+
+        // 2. Firebase માંથી સેવ થયેલી ટીમ્સ લોડ કરો
+        db.ref('teams').on('value', (snapshot) => {
+            const data = snapshot.val();
+            savedTeams = [];
+            const teamsContainer = document.getElementById('savedTeamsContainer');
+            const teamCountBadge = document.getElementById('teamCount');
+            
+            teamsContainer.innerHTML = '';
+
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    savedTeams.push({ key: key, ...data[key] });
+                });
+            }
+
+            teamCountBadge.innerText = `Teams: ${savedTeams.length}`;
+
+            if (savedTeams.length === 0) {
+                teamsContainer.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 10px;">હજુ સુધી કોઈ ટીમ બનાવી નથી.</p>`;
+                return;
+            }
+
+            savedTeams.forEach((team) => {
+                let playersListStr = team.players ? team.players.join(', ') : '';
+                teamsContainer.innerHTML += `
+                    <div class="team-card">
+                        <div class="team-info" style="flex: 1; padding-right: 10px;">
+                            <h4>${team.name}</h4>
+                            <p><strong>Players (${team.players ? team.players.length : 0}):</strong> ${playersListStr}</p>
+                        </div>
+                        <div class="action-btns">
+                            <button class="edit-btn" onclick="editTeam('${team.key}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteTeam('${team.key}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            loadPlayersForTeam();
+        });
+
+        // 3. પ્લેયર સિલેક્શન ચેકબોક્સ બનાવવા
+        function loadPlayersForTeam(currentTeamPlayers = []) {
+            const container = document.getElementById('playerSelectionContainer');
+            container.innerHTML = '';
+
+            if (cloudPlayers.length === 0) {
+                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center;">કોઈ પ્લેયર ક્લાઉડ પર મળ્યા નથી! પહેલા Manage Players માંથી એડ કરો.</p>`;
+                return;
+            }
+
+            // અન્ય ટીમમાં વપરાયેલા ખેલાડીઓ શોધો
+            let assignedPlayers = [];
+            savedTeams.forEach((t) => {
+                if (t.key !== editingKey && t.players) {
+                    assignedPlayers.push(...t.players);
+                }
+            });
+
+            cloudPlayers.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+
+            let availableCount = 0;
+            cloudPlayers.forEach((player) => {
+                if (!assignedPlayers.includes(player) || currentTeamPlayers.includes(player)) {
+                    let isChecked = currentTeamPlayers.includes(player) ? 'checked' : '';
+                    container.innerHTML += `
+                        <label style="display: block; font-size: 11px; margin-bottom: 4px; color: #f1f5f9; cursor: pointer;">
+                            <input type="checkbox" name="selectedTeamPlayers" value="${player}" ${isChecked} style="margin-right: 6px;"> ${player}
+                        </label>
+                    `;
+                    availableCount++;
+                }
+            });
+
+            if (availableCount === 0) {
+                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center;">બધા જ ખેલાડીઓ ટીમમાં વહેંચાઈ ગયા છે!</p>`;
+            }
+        }
+
+        // 4. ટીમ Firebase માં સેવ અથવા અપડેટ કરવી
+        function saveTeam() {
+            const teamNameInput = document.getElementById('teamNameInput');
+            const teamName = teamNameInput.value.trim();
+            
+            if (teamName === '') {
+                alert('કૃપા કરીને ટીમનું નામ દાખલ કરો!');
+                return;
+            }
+
+            const checkboxes = document.querySelectorAll('input[name="selectedTeamPlayers"]:checked');
+            let selectedPlayers = [];
+            checkboxes.forEach((cb) => {
+                selectedPlayers.push(cb.value);
+            });
+
+            if (selectedPlayers.length === 0) {
+                alert('કૃપા કરીને ટીમ માટે ઓછામાં ઓછો એક ખેલાડી સિલેક્ટ કરો!');
+                return;
+            }
+
+            if (editingKey === null) {
+                // Firebase માં નવી ટીમ પુશ કરો
+                db.ref('teams').push({ name: teamName, players: selectedPlayers });
+            } else {
+                // Firebase માં હાલની ટીમ અપડેટ કરો
+                db.ref('teams/' + editingKey).set({ name: teamName, players: selectedPlayers });
+                editingKey = null;
+                document.getElementById('saveTeamBtn').innerText = 'Save Team';
+            }
+            
+            teamNameInput.value = '';
+            loadPlayersForTeam();
+        }
+
+        // 5. ટીમ એડિટ કરવા માટે
+        function editTeam(key) {
+            let teamToEdit = savedTeams.find(t => t.key === key);
+            if (teamToEdit) {
+                document.getElementById('teamNameInput').value = teamToEdit.name;
+                editingKey = key;
+                document.getElementById('saveTeamBtn').innerText = 'Update Team';
+                loadPlayersForTeam(teamToEdit.players);
+            }
+        }
+
+        // 6. ટીમ ડિલીટ કરવા માટે
+        function deleteTeam(key) {
+            if (confirm('શું તમે ખરેખર આ ટીમ ડિલીટ કરવા માંગો છો?')) {
+                db.ref('teams/' + key).remove();
+                if (editingKey === key) {
+                    editingKey = null;
+                    document.getElementById('teamNameInput').value = '';
+                    document.getElementById('saveTeamBtn').innerText = 'Save Team';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

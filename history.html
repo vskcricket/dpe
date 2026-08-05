@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Matches History - Gully Cricket Scorer</title>
+    
+    <!-- Firebase Realtime Database SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <!-- html2pdf અને html2canvas લાઈબ્રેરીઓ PDF અને Image ડાઉનલોડ કરવા માટે -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+    
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+    
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #090d16);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            color: #f8fafc;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+    
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    
+        .container {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 22px;
+            padding: 22px 28px;
+            width: 100%;
+            max-width: 750px;
+            max-height: 90vh;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+    
+        h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            flex-shrink: 0;
+        }
+    
+        td, th, p, label, span {
+            color: #f1f5f9 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+    
+        th {
+            background: rgba(15, 23, 42, 0.95) !important;
+            color: #38bdf8 !important;
+            padding: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #38bdf8 !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+    
+        td {
+            background: rgba(30, 41, 59, 0.85) !important;
+            padding: 12px 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 13px;
+            font-weight: 500;
+        }
+    
+        tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid rgba(255, 255, 255, 0.15); }
+        tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid rgba(255, 255, 255, 0.15); }
+    
+        tr:hover td {
+            background: rgba(56, 189, 248, 0.2) !important;
+        }
+    
+        button, .back-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+    
+        button:hover, .back-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+        }
+
+        .scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-top: 5px;
+        }
+        .scrollable-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 22px;
+            width: 100%;
+            max-width: 750px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .modal-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            max-height: 60vh;
+        }
+        .modal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+
+        .clickable {
+            cursor: pointer;
+            color: #38bdf8;
+            transition: color 0.2s;
+        }
+        .clickable:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 style="margin:0;">📂 Saved Matches History</h2>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <a href="index.html" class="back-btn" style="background: #b62eec;">🏠 Home</a>
+            <a href="match.html" class="back-btn">← Match</a>
+        </div>
+        
+        <div id="savedMatchesContainer" class="scrollable-content">
+            <!-- Saved matches will load here from Firebase -->
+        </div>
+    </div>
+
+    <!-- Scorecard Modal -->
+    <div id="scorecardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 16px; margin: 0; border: none; padding: 0; color: #38bdf8;">Match Scorecard View</h3>
+                <div style="display: flex; gap: 6px;">
+                    <button onclick="downloadPDF()" style="background: #10b981; padding: 6px 10px; font-size: 11px;">📥 PDF</button>
+                    <button onclick="downloadImage()" style="background: #f59e0b; padding: 6px 10px; font-size: 11px;">🖼️ Image</button>
+                    <button class="close-btn" onclick="closeModal()" style="background: #ef4444; padding: 6px 10px; font-size: 11px;">Close ✕</button>
+                </div>
+            </div>
+            
+            <div class="modal-body">
+                <div id="printableArea" style="background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 12px;">
+                    <div style="margin-bottom: 12px; border-bottom: 2px solid rgba(56, 189, 248, 0.4); padding-bottom: 8px;">
+                        <h4 id="modalMatchTitle" style="font-size: 15px; color: #38bdf8 !important; margin-bottom: 4px;">Match Scorecard</h4>
+                        <span id="modalMatchDateTime" style="font-size: 11px; color: #94a3b8 !important;">📅 -</span>
+                    </div>
+                    <div id="modalScorecardBody">
+                        <!-- Detailed player stats will load here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlzjpevvcsMYmxw3qrLg2wSPyeEeWjlcA",
+            authDomain: "vskcricket.firebaseapp.com",
+            databaseURL: "https://vskcricket-default-rtdb.firebaseio.com",
+            projectId: "vskcricket",
+            storageBucket: "vskcricket.firebasestorage.app",
+            messagingSenderId: "958856613764",
+            appId: "1:958856613764:web:38dea869966b3d62c257d1",
+            measurementId: "G-M9XFXE93HE"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let allSavedMatches = [];
+        let matchKeys = [];
+
+        function fetchSavedMatchesFromFirebase() {
+            let container = document.getElementById("savedMatchesContainer");
+            container.innerHTML = `<p style="font-size: 13px; color: #94a3b8 !important; text-align: center; padding: 40px;">Loading history from database...</p>`;
+
+            db.ref('match_history').on('value', (snapshot) => {
+                const data = snapshot.val();
+                allSavedMatches = [];
+                matchKeys = [];
+
+                if (!data) {
+                    container.innerHTML = `<p style="font-size: 13px; color: #94a3b8 !important; text-align: center; padding: 40px;">No saved matches found in database.</p>`;
+                    return;
+                }
+
+                Object.keys(data).reverse().forEach(key => {
+                    matchKeys.push(key);
+                    allSavedMatches.push(data[key]);
+                });
+
+                renderTable();
+            });
+        }
+
+        function renderTable() {
+            let container = document.getElementById("savedMatchesContainer");
+            if (allSavedMatches.length === 0) {
+                container.innerHTML = `<p style="font-size: 13px; color: #94a3b8 !important; text-align: center; padding: 40px;">No saved matches found.</p>`;
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>Match & Date</th>
+                        <th style="text-align: center;">Winner Team</th>
+                        <th style="text-align: center;">Man of the Match</th>
+                        <th style="text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            allSavedMatches.forEach((match, index) => {
+                let teamsText = match.teams || (match.team1 && match.team2 ? match.team1 + " vs " + match.team2 : "Unknown Match");
+                let mom = match.manOfTheMatch || "N/A";
+                let winner = match.winnerTeam || "N/A";
+                let matchDate = match.date || 'Recent';
+
+                html += `<tr>
+                    <td>
+                        <strong class="clickable" onclick="viewScorecard(${index})" style="font-size: 13px;">${teamsText} 🔍</strong><br>
+                        <span style="color: #94a3b8 !important; font-size: 11px;">📅 ${matchDate}</span>
+                    </td>
+                    <td style="text-align: center; color: #4ade80 !important; font-weight: 700; font-size: 12px;">
+                        🏆 ${winner}
+                    </td>
+                    <td style="text-align: center; color: #fbbf24 !important; font-weight: 700; font-size: 12px;">
+                        ⭐ ${mom}
+                    </td>
+                    <td style="text-align: center;">
+                        <button onclick="deleteMatch('${matchKeys[index]}')" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">Delete</button>
+                    </td>
+                </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function viewScorecard(index) {
+            let match = allSavedMatches[index];
+            if (!match) return;
+
+            let teamsTitle = match.teams || "Match Scorecard";
+            document.getElementById("modalMatchTitle").textContent = teamsTitle;
+            document.getElementById("modalMatchDateTime").textContent = `📅 Date & Time: ${match.date || 'N/A'}`;
+            let bodyDiv = document.getElementById("modalScorecardBody");
+
+            let firstInningHtml = "";
+            let firstSum = match.firstInning;
+            if (firstSum) {
+                let fBatsmanHtml = generateBatsmanTable(firstSum.batsmanStats);
+                let fBowlerHtml = generateBowlerTable(firstSum.bowlerStats);
+                let fOvers = Math.floor((firstSum.balls || 0) / 6) + "." + ((firstSum.balls || 0) % 6);
+                
+                firstInningHtml = `
+                    <div style="background: rgba(30, 41, 59, 0.8); padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #38bdf8;">
+                        <h4 style="color: #facc15 !important; font-size: 14px; margin-bottom: 6px;">🏏 1st Innings: ${firstSum.battingTeam || 'Team 1'}</h4>
+                        <p style="font-size: 12px; margin-bottom: 8px;"><b>Score:</b> ${firstSum.score || 0} / ${firstSum.wickets || 0} (${fOvers} Overs)</p>
+                        ${fBatsmanHtml}
+                        ${fBowlerHtml}
+                    </div>
+                `;
+            }
+
+            let secondSum = match.secondInning || {};
+            let sBatsmanHtml = generateBatsmanTable(secondSum.batsmanStats);
+            let sBowlerHtml = generateBowlerTable(secondSum.bowlerStats);
+            let sOvers = Math.floor((secondSum.balls || 0) / 6) + "." + ((secondSum.balls || 0) % 6);
+            
+            let secondInningHtml = `
+                <div style="background: rgba(30, 41, 59, 0.8); padding: 10px; border-radius: 10px; border: 1px solid #38bdf8;">
+                    <h4 style="color: #facc15 !important; font-size: 14px; margin-bottom: 6px;">🏏 2nd Innings: ${secondSum.battingTeam || 'Team 2'}</h4>
+                    ${secondSum.score !== undefined ? `<p style="font-size: 12px; margin-bottom: 8px;"><b>Score:</b> ${secondSum.score || 0} / ${secondSum.wickets || 0} (${sOvers} Overs)</p>` : ''}
+                    ${sBatsmanHtml}
+                    ${sBowlerHtml}
+                </div>
+            `;
+
+            bodyDiv.innerHTML = `
+                <div style="background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p style="font-size: 12px; margin-bottom: 3px;"><b>Winner:</b> <span style="color: #4ade80 !important; font-weight: bold;">🏆 ${match.winnerTeam || 'N/A'}</span></p>
+                    <p style="font-size: 12px;"><b>Man of the Match:</b> <span style="color: #fbbf24 !important;">⭐ ${match.manOfTheMatch || 'N/A'}</span></p>
+                </div>
+                ${firstInningHtml}
+                ${secondInningHtml}
+            `;
+
+            document.getElementById("scorecardModal").style.display = "flex";
+        }
+
+        function generateBatsmanTable(pStats) {
+            let html = `<h5 style="font-size: 12px; margin-top: 8px; margin-bottom: 4px; color: #38bdf8 !important;">Batting Scorecard</h5>
+            <table>
+                <thead><tr><th>Batsman</th><th style="text-align:center;">R</th><th style="text-align:center;">B</th><th style="text-align:center;">4s</th><th style="text-align:center;">6s</th><th style="text-align:center;">SR</th><th>Status</th></tr></thead><tbody>`;
+            
+            let hasBatsman = false;
+            for (let player in pStats) {
+                hasBatsman = true;
+                let p = pStats[player];
+                let runs = p.runs || 0;
+                let balls = p.balls || 0;
+                let sr = balls > 0 ? ((runs / balls) * 100).toFixed(1) : "0.0";
+                let outStatus = p.outBy ? `Out (b ${p.outBy})` : (p.status === 'out' ? "Out" : "Not Out");
+
+                html += `<tr>
+                    <td><b>${player}</b></td>
+                    <td style="text-align:center;">${runs}</td>
+                    <td style="text-align:center;">${balls}</td>
+                    <td style="text-align:center;">${p.fours || 0}</td>
+                    <td style="text-align:center;">${p.sixes || 0}</td>
+                    <td style="text-align:center;">${sr}</td>
+                    <td style="font-size: 11px; color: #f472b6 !important;">${outStatus}</td>
+                </tr>`;
+            }
+            if (!hasBatsman) html += `<tr><td colspan="7" style="text-align:center; color:#94a3b8 !important;">No data recorded.</td></tr>`;
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        function generateBowlerTable(bStats) {
+            let html = `<h5 style="font-size: 12px; margin-top: 10px; margin-bottom: 4px; color: #38bdf8 !important;">Bowling Figures</h5>
+            <table>
+                <thead><tr><th>Bowler</th><th style="text-align:center;">O</th><th style="text-align:center;">R</th><th style="text-align:center;">W</th><th style="text-align:center;">Eco</th></tr></thead><tbody>`;
+            
+            let hasBowler = false;
+            for (let bowler in bStats) {
+                hasBowler = true;
+                let b = bStats[bowler];
+                let totalBalls = b.legalBalls || 0;
+                let exactOversText = Math.floor(totalBalls / 6) + "." + (totalBalls % 6);
+                let runsGiven = b.runs || 0;
+                let oversDecimal = Math.floor(totalBalls / 6) + ((totalBalls % 6) / 6);
+                let economy = oversDecimal > 0 ? (runsGiven / oversDecimal).toFixed(2) : "0.00";
+
+                html += `<tr>
+                    <td><b>${bowler}</b></td>
+                    <td style="text-align:center;">${exactOversText}</td>
+                    <td style="text-align:center;">${runsGiven}</td>
+                    <td style="text-align:center;">${b.wickets || 0}</td>
+                    <td style="text-align:center; color: #38bdf8 !important;">${economy}</td>
+                </tr>`;
+            }
+            if (!hasBowler) html += `<tr><td colspan="5" style="text-align:center; color:#94a3b8 !important;">No data recorded.</td></tr>`;
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        function closeModal() {
+            document.getElementById("scorecardModal").style.display = "none";
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('printableArea');
+            let matchTitle = document.getElementById("modalMatchTitle").textContent || "Scorecard";
+            let opt = {
+                margin:       0.5,
+                filename:     matchTitle + '_Scorecard.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: element.scrollWidth },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('printableArea');
+            let matchTitle = document.getElementById("modalMatchTitle").textContent || "Scorecard";
+            html2canvas(element, { 
+                scale: 2, 
+                useCORS: true, 
+                backgroundColor: '#0f172a',
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight 
+            }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = matchTitle + '_Scorecard.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function deleteMatch(firebaseKey) {
+            if (confirm("Are you sure you want to delete this match from database?")) {
+                db.ref('match_history/' + firebaseKey).remove().catch((error) => {
+                    alert("Error deleting match: " + error.message);
+                });
+            }
+        }
+
+        window.onload = fetchSavedMatchesFromFirebase;
+    </script>
+</body>
+</html>

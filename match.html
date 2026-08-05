@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Setup - Gully Cricket Scorer</title>
+    
+    <!-- Firebase Realtime Database SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #090d16);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1 !important;
+            margin-bottom: 6px;
+        }
+
+        select, input {
+            width: 100%;
+            background: #1e293b;
+            color: white;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin: 20px 0 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 4px;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .home-link {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .home-link:hover {
+            color: #38bdf8;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            padding: 18px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .modal-box select {
+            width: 100%;
+            background: #1e293b;
+            color: white;
+            border: 1px solid #38bdf8;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="setupPopupModal">
+        <div class="modal-box">
+            <h3 id="setupModalTitle" style="font-size: 13px; color: #38bdf8; margin-bottom: 8px; text-align: center;">Select Players</h3>
+            <div id="setupModalBody"></div>
+            <button onclick="confirmSetupPlayers()" style="width: 100%; margin-top: 5px;">Start Live Match 🚀</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>⚙️ Match Setup</h2>
+
+        <div class="form-group">
+            <label>Select Team 1:</label>
+            <select id="team1Select" onchange="updateTeam2Options()">
+                <option value="">-- Choose Team 1 --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Select Team 2:</label>
+            <select id="team2Select">
+                <option value="">-- Choose Team 2 --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Total Overs:</label>
+            <input type="number" id="totalOvers" value="5" min="1" max="50">
+        </div>
+
+        <div class="section-title">🪙 Toss Decision</div>
+
+        <div class="form-group">
+            <label>Who won the toss?</label>
+            <select id="tossWinner">
+                <option value="">-- Select Toss Winner --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Elect to:</label>
+            <select id="tossChoice">
+                <option value="bat">Batting First 🏏</option>
+                <option value="bowl">Bowling First ⚾</option>
+            </select>
+        </div>
+
+        <button onclick="prepareMatchStart()">Next: Select Players 🏏</button>
+        <a href="index.html" class="home-link">🏠 Back to Home</a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlzjpevvcsMYmxw3qrLg2wSPyeEeWjlcA",
+            authDomain: "vskcricket.firebaseapp.com",
+            databaseURL: "https://vskcricket-default-rtdb.firebaseio.com",
+            projectId: "vskcricket",
+            storageBucket: "vskcricket.firebasestorage.app",
+            messagingSenderId: "958856613764",
+            appId: "1:958856613764:web:38dea869966b3d62c257d1",
+            measurementId: "G-M9XFXE93HE"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let allTeams = [];
+        let tempMatchData = {};
+
+        db.ref('teams').on('value', (snapshot) => {
+            const data = snapshot.val();
+            allTeams = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    allTeams.push(data[key]);
+                });
+            }
+
+            let t1Select = document.getElementById('team1Select');
+            let currentT1 = t1Select.value;
+            t1Select.innerHTML = '<option value="">-- Choose Team 1 --</option>';
+
+            allTeams.forEach(t => {
+                t1Select.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+            });
+
+            t1Select.value = currentT1;
+            updateTeam2Options();
+        });
+
+        function updateTeam2Options() {
+            let t1Val = document.getElementById('team1Select').value;
+            let t2Select = document.getElementById('team2Select');
+            let tossSelect = document.getElementById('tossWinner');
+
+            let currentT2Val = t2Select.value;
+            let currentTossVal = tossSelect.value;
+            
+            t2Select.innerHTML = '<option value="">-- Choose Team 2 --</option>';
+            tossSelect.innerHTML = '<option value="">-- Select Toss Winner --</option>';
+
+            if (t1Val) {
+                tossSelect.innerHTML += `<option value="${t1Val}">${t1Val}</option>`;
+            }
+
+            allTeams.forEach(t => {
+                if (t.name !== t1Val) {
+                    t2Select.innerHTML += `<option value="${t.name}">${t.name}</option>`;
+                }
+            });
+
+            t2Select.value = currentT2Val;
+            let t2Val = t2Select.value;
+            
+            if (t2Val && t2Val !== t1Val) {
+                tossSelect.innerHTML += `<option value="${t2Val}">${t2Val}</option>`;
+            }
+
+            tossSelect.value = currentTossVal;
+        }
+
+        document.getElementById('team2Select').addEventListener('change', () => {
+            let t1Val = document.getElementById('team1Select').value;
+            let t2Val = document.getElementById('team2Select').value;
+            let tossSelect = document.getElementById('tossWinner');
+            
+            let currentTossVal = tossSelect.value;
+            tossSelect.innerHTML = '<option value="">-- Select Toss Winner --</option>';
+            
+            if (t1Val) tossSelect.innerHTML += `<option value="${t1Val}">${t1Val}</option>`;
+            if (t2Val && t2Val !== t1Val) tossSelect.innerHTML += `<option value="${t2Val}">${t2Val}</option>`;
+            
+            tossSelect.value = currentTossVal;
+        });
+
+        function prepareMatchStart() {
+            let t1 = document.getElementById('team1Select').value;
+            let t2 = document.getElementById('team2Select').value;
+            let overs = document.getElementById('totalOvers').value;
+            let tossWinner = document.getElementById('tossWinner').value;
+            let tossChoice = document.getElementById('tossChoice').value;
+
+            if (!t1 || !t2 || !tossWinner) {
+                alert('કૃપા કરીને બધી વિગતો (બંને ટીમ અને ટોસ) પસંદ કરો!');
+                return;
+            }
+
+            if (t1 === t2) {
+                alert('બંને ટીમ અલગ હોવી જોઈએ!');
+                return;
+            }
+
+            if (!overs || overs <= 0) {
+                alert('કૃપા કરીને માન્ય ઓવર નાખો!');
+                return;
+            }
+
+            let battingTeam = "";
+            let bowlingTeam = "";
+
+            if (tossChoice === 'bat') {
+                battingTeam = tossWinner;
+                bowlingTeam = (tossWinner === t1) ? t2 : t1;
+            } else {
+                bowlingTeam = tossWinner;
+                battingTeam = (tossWinner === t1) ? t2 : t1;
+            }
+
+            tempMatchData = {
+                team1: t1,
+                team2: t2,
+                battingTeam: battingTeam,
+                bowlingTeam: bowlingTeam,
+                totalOvers: parseInt(overs),
+                score: 0,
+                wickets: 0,
+                balls: 0,
+                inning: 1,
+                target: 0,
+                striker: '',
+                nonStriker: '',
+                bowler: '',
+                lastBowler: '',
+                batsmanStats: {},
+                bowlerStats: {}
+            };
+
+            let battingObj = allTeams.find(t => t.name === battingTeam);
+            let bowlingObj = allTeams.find(t => t.name === bowlingTeam);
+
+            document.getElementById('setupModalTitle').innerText = `🚀 ${battingTeam} ની બેટિંગ - ખેલાડીઓ પસંદ કરો:`;
+
+            let html = '<label style="font-size:10px; color:#38bdf8;">Striker:</label><select id="setupStriker"><option value="">-- Select Striker --</option>';
+            if (battingObj && battingObj.players) {
+                battingObj.players.forEach(p => html += `<option value="${p}">${p}</option>`);
+            }
+            html += '</select>';
+
+            html += '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="setupNonStriker"><option value="">-- Select Non-Striker --</option>';
+            if (battingObj && battingObj.players) {
+                battingObj.players.forEach(p => html += `<option value="${p}">${p}</option>`);
+            }
+            html += '</select>';
+
+            html += '<label style="font-size:10px; color:#38bdf8;">Opening Bowler:</label><select id="setupBowler"><option value="">-- Select Bowler --</option>';
+            if (bowlingObj && bowlingObj.players) {
+                bowlingObj.players.forEach(p => html += `<option value="${p}">${p}</option>`);
+            }
+            html += '</select>';
+
+            document.getElementById('setupModalBody').innerHTML = html;
+            document.getElementById('setupPopupModal').style.display = 'flex';
+        }
+
+        function confirmSetupPlayers() {
+            let s = document.getElementById('setupStriker').value;
+            let ns = document.getElementById('setupNonStriker').value;
+            let b = document.getElementById('setupBowler').value;
+
+            if (!s || !ns || !b) {
+                alert('કૃપા કરીને બધા ખેલાડીઓ સિલેક્ટ કરો!');
+                return;
+            }
+            if (s === ns) {
+                alert('સ્ટ્રાઈકર અને નોન-સ્ટ્રાઈકર અલગ હોવા જોઈએ!');
+                return;
+            }
+
+            tempMatchData.striker = s;
+            tempMatchData.nonStriker = ns;
+            tempMatchData.bowler = b;
+
+            tempMatchData.batsmanStats[s] = { runs: 0, balls: 0, fours: 0, sixes: 0, status: 'batting', outBy: '' };
+            tempMatchData.batsmanStats[ns] = { runs: 0, balls: 0, fours: 0, sixes: 0, status: 'batting', outBy: '' };
+            tempMatchData.bowlerStats[b] = { legalBalls: 0, runs: 0, wickets: 0 };
+
+            let newMatchRef = db.ref('matches/default_match');
+            newMatchRef.set(tempMatchData).then(() => {
+                localStorage.setItem('current_match_id', 'default_match');
+                window.location.href = 'scorer.html';
+            });
+        }
+    </script>
+</body>
+</html>

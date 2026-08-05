@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Players - Gully Cricket Scorer</title>
+    
+    <!-- Firebase Realtime Database SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #090d16);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            color: #f8fafc;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 18px 22px;
+            width: 100%;
+            max-width: 750px;
+            max-height: 90vh;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .top-section {
+            flex-shrink: 0;
+        }
+
+        .title-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .count-badge {
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            color: #38bdf8;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.95) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important;
+            color: #ffffff !important;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        button {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.15);
+        }
+
+        .scrollable-list {
+            max-height: 48vh;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 10px;
+        }
+
+        .scrollable-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.95) !important;
+            color: #38bdf8 !important;
+            padding: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        td {
+            background: rgba(30, 41, 59, 0.85) !important;
+            color: #f1f5f9 !important;
+            padding: 8px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; text-align: right; }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            padding: 4px 10px;
+            font-size: 10px;
+            border-radius: 6px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .back-link a {
+            color: #94a3b8;
+            font-size: 11px;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Top Section -->
+        <div class="top-section">
+            <div class="title-header">
+                <h2>Manage Players (Cloud Sync)</h2>
+                <div class="count-badge" id="playerCount">Total: 0</div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="Enter player name..." onkeypress="handleKeyPress(event)">
+                <button onclick="addPlayer()">Add Player</button>
+            </div>
+        </div>
+
+        <!-- Middle Section: Scrollable List -->
+        <div class="scrollable-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="playerTableBody">
+                    <!-- પ્લેયર્સના નામો અહીં ડાયનેમિક એડ થશે -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Section: Back Link -->
+        <div class="back-link">
+            <a href="index.html">🏠 Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // 🛠️ તમારા Firebase પ્રોજેક્ટની માહિતી અહીં મૂકેલી છે
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlZjpevvcgMYmxw3qrLg2wSPyE...",
+            authDomain: "vskcricket.firebaseapp.com",
+            databaseURL: "https://vskcricket-default-rtdb.firebaseio.com",
+            projectId: "vskcricket"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let playersList = [];
+
+        // રિયલ-ટાઇમ ડેટા મેળવવા અને ડિસ્પ્લે કરવા માટે
+        db.ref('players').on('value', (snapshot) => {
+            const data = snapshot.val();
+            playersList = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    playersList.push({ id: key, name: data[key].name });
+                });
+            }
+            renderPlayers();
+        });
+
+        function renderPlayers() {
+            const tbody = document.getElementById('playerTableBody');
+            const countBadge = document.getElementById('playerCount');
+            tbody.innerHTML = '';
+            
+            countBadge.innerText = `Total: ${playersList.length}`;
+
+            if (playersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #94a3b8;">No players added yet.</td></tr>`;
+                return;
+            }
+
+            // A થી Z ના ક્રમમાં સોર્ટિંગ
+            playersList.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+
+            playersList.forEach((player) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${player.name}</td>
+                        <td><button class="delete-btn" onclick="deletePlayer('${player.id}')">Delete</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                addPlayer();
+            }
+        }
+
+        function addPlayer() {
+            const input = document.getElementById('playerName');
+            const name = input.value.trim();
+            if (name === '') return;
+
+            // ડુપ્લિકેટ ચેક
+            let exists = playersList.some(p => p.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                alert('આ ખેલાડીનું નામ પહેલેથી જ ઉમેરેલું છે!');
+                return;
+            }
+
+            // Firebase માં ડેટા સેવ કરો
+            db.ref('players').push({ name: name });
+            input.value = '';
+        }
+
+        function deletePlayer(id) {
+            if (confirm('શું તમે ખરેખર આ ખેલાડીને ડિલીટ કરવા માંગો છો?')) {
+                // Firebase માંથી પ્લેયર ડિલીટ કરો
+                db.ref('players/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>
