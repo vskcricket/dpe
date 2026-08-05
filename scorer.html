@@ -867,10 +867,34 @@
             if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || (!matchData.striker && !matchData.nonStriker)) {
                 handleInningEnd();
             } else if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+                // 6 બોલ પૂરા થતાં જ નવો બોલર બદલવા માટેનું પોપઅપ ટ્રિગર કરો
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
                 saveAndRefresh();
+                triggerNewBowlerPopup();
             }
+        }
+
+        function triggerNewBowlerPopup() {
+            popupType = 'new_bowler';
+            document.getElementById('modalTitle').innerText = `🔄 ઓવર પૂરી થઈ! આગામી ઓવર માટે નવો બોલર પસંદ કરો:`;
+            
+            teamsRef.once('value', (snapshot) => {
+                let savedTeams = snapshot.val() || [];
+                let bowlingObj = Object.values(savedTeams).find(t => t.name === matchData.bowlingTeam);
+                let bowlingPlayers = (bowlingObj && bowlingObj.players) ? bowlingObj.players : [];
+
+                let html = '<select id="popupSelect"><option value="">-- Select New Bowler --</option>';
+                bowlingPlayers.forEach(p => {
+                    if (p !== matchData.lastBowler) {
+                        html += `<option value="${p}">${p}</option>`;
+                    }
+                });
+                html += '</select>';
+
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('popupModal').style.display = 'flex';
+            });
         }
 
         function handleInningEnd() {
@@ -1124,6 +1148,14 @@
                 initializePlayerStats(s);
                 if (ns) initializePlayerStats(ns);
                 initializeBowlerStats(b);
+            } else if (popupType === 'new_bowler') {
+                let newBowler = document.getElementById('popupSelect').value;
+                if (!newBowler) {
+                    alert('કૃપા કરીને નવો બોલર સિલેક્ટ કરો!');
+                    return;
+                }
+                matchData.bowler = newBowler;
+                initializeBowlerStats(newBowler);
             } else {
                 let selectedVal = document.getElementById('popupSelect').value;
 
