@@ -741,6 +741,7 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
+            // જો નોન-સ્ટ્રાઈકર સક્રિય હોય તો જ રન પર સ્ટ્રાઈક બદલાશે
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -809,12 +810,11 @@
                     }
                 });
 
-                // **સુધારો (Fix):** જો નવા ખેલાડી ઉપલબ્ધ ન હોય, તો ડ્રોપડાઉનમાં "- (Solo Player / કોઈ નહીં)" નો વિકલ્પ ફરજિયાત દેખાશે જેથી યુઝર તેને સોલો રમાડવા માટે પસંદ કરી શકે.
                 popupType = 'new_batsman';
                 document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો:';
                 
                 let html = '<select id="popupSelect">';
-                // જો કોઈ નવો ખેલાડી ન બચ્યો હોય, તો સોલો ઓપ્શન પહેલો રહેશે
+                // જો કોઈ નવો ખેલાડી ન બચ્યો હોય કે સોલો રમાડવું હોય, તો આ વિકલ્પ હંમેશા ઉપલબ્ધ રહેશે
                 html += '<option value="-">- (Solo Player / કોઈ નહીં) -</option>';
                 
                 filteredPlayers.forEach(p => {
@@ -1081,6 +1081,7 @@
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
 
+                // અહીં નોન-સ્ટ્રાઈકર માટે સોલો પ્લેયરનો વિકલ્પ ઉમેરેલ છે
                 html += '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="p2"><option value="-">- (Solo Player / કોઈ નહીં) -</option>';
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
