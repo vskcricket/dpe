@@ -597,7 +597,7 @@
             document.getElementById('overs-text').innerText = `Overs: ${completedOvers}.${currentBalls} / ${matchData.totalOvers || 0}`;
 
             document.getElementById('big-striker').innerText = matchData.striker || 'None';
-            document.getElementById('big-nonstriker').innerText = matchData.nonStriker || 'None';
+            document.getElementById('big-nonstriker').innerText = (matchData.nonStriker && matchData.nonStriker !== '-') ? matchData.nonStriker : 'None (Solo)';
             document.getElementById('lbl-bowler').innerText = matchData.bowler || '-';
 
             if (matchData.inning === 2 && matchData.firstInningSummary) {
@@ -714,13 +714,7 @@
 
         function addRuns(runs) {
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= 10 || (!matchData.striker && !matchData.nonStriker)) {
-                handleInningEnd();
-                return;
-            }
-
-            if (!matchData.striker) {
-                alert('કોઈ બેટ્સમેન ક્રિઝ પર નથી!');
+            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= 10 || !matchData.striker) {
                 handleInningEnd();
                 return;
             }
@@ -811,17 +805,19 @@
                     }
                 });
 
+                // જો કોઈ નવો ખેલાડી ઉપલબ્ધ ન હોય, છતાં નોન-સ્ટ્રાઈકર પર કોઈ ન હોય તો એકલો ખેલાડી સ્ટ્રાઈક પર રમી શકે છે (ઇનિંગ્સ તરત પૂરી નહીં થાય જ્યાં સુધી સ્ટ્રાઈકર આઉટ ન થાય).
                 if (filteredPlayers.length === 0) {
                     saveStateBeforeAction();
                     let outBatsman = matchData.striker;
                     
                     if (matchData.nonStriker && matchData.nonStriker !== '-') {
+                        // જો નોન-સ્ટ્રાઈકર પર ખેલાડી હોય, તો તેને સ્ટ્રાઈક પર લાવો
                         if (matchData.batsmanStats[outBatsman]) {
                             matchData.batsmanStats[outBatsman].status = 'out';
                             matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
                         }
                         matchData.wickets += 1;
-                        matchData.balls += 1;
+                        matchData.balls += 1; // બોલ કાઉન્ટ થશે
 
                         if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
                         matchData.currentOverBalls.push("W");
@@ -845,12 +841,13 @@
                         }
                         return;
                     } else {
+                        // જો નોન-સ્ટ્રાઈકર પર પણ કોઈ ન હોય અને સ્ટ્રાઈકર આઉટ થાય, તો ઇનિંગ્સ પૂરી થશે
                         if (matchData.batsmanStats[outBatsman]) {
                             matchData.batsmanStats[outBatsman].status = 'out';
                             matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
                         }
                         matchData.wickets += 1;
-                        matchData.balls += 1;
+                        matchData.balls += 1; // બોલ કાઉન્ટ થશે
 
                         if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
                         matchData.currentOverBalls.push("W");
@@ -870,9 +867,9 @@
                 }
 
                 popupType = 'new_batsman';
-                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો (અથવા કન્ફર્મ કરો):';
+                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો:';
                 
-                let html = '<select id="popupSelect"><option value="">-- No New Batsman (Continue Solo) --</option>';
+                let html = '<select id="popupSelect"><option value="">-- Select New Batsman --</option>';
                 filteredPlayers.forEach(p => {
                     html += `<option value="${p}">${p}</option>`;
                 });
@@ -886,7 +883,7 @@
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
             let maxPossibleWickets = 10;
             
-            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || (!matchData.striker && !matchData.nonStriker)) {
+            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || !matchData.striker) {
                 handleInningEnd();
             }
         }
@@ -1195,7 +1192,7 @@
                 }
 
                 matchData.wickets += 1;
-                matchData.balls += 1;
+                matchData.balls += 1; // બોલ કાઉન્ટ થયો (જેમ કે 1st ball out -> 1 ball 0 run)
 
                 if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
                 matchData.currentOverBalls.push("W");
@@ -1212,9 +1209,14 @@
                     }
                     initializePlayerStats(selectedVal);
                 } else {
-                    // જો કોઈ નવો ખેલાડી ન પસંદ કર્યો હોય (એકલો જ રમતો હોય) તો ઇનિંગ્સ પૂરી થઈ જશે
-                    matchData.striker = '';
-                    matchData.nonStriker = '';
+                    // જો કોઈ નવો ખેલાડી ન પસંદ કર્યો હોય, તો પણ જો નોન-સ્ટ્રાઈકર પર કોઈ ખેલાડી હજુ બાકી હોય તો તેને સ્ટ્રાઈકર બનાવી દો, નહીંતર એમ્પ્ટી કરો
+                    if (matchData.nonStriker && matchData.nonStriker !== '-') {
+                        matchData.striker = matchData.nonStriker;
+                        matchData.nonStriker = '';
+                    } else {
+                        matchData.striker = '';
+                        matchData.nonStriker = '';
+                    }
                 }
 
                 if (matchData.balls > 0 && matchData.balls % 6 === 0) {
