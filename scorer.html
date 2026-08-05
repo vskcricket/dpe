@@ -759,8 +759,16 @@
                 return;
             }
 
-            saveAndRefresh();
-            checkInningOrOverCompletion();
+            // ચેક કરો કે 6 બોલ પૂરા થયા કે નહીં (જો 6 બોલ પૂરા થાય તો સીધું બોલર ચેન્જ પોપઅપ ખુલશે)
+            if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+                matchData.lastBowler = matchData.bowler;
+                matchData.currentOverBalls = [];
+                saveAndRefresh();
+                triggerNewBowlerPopup();
+            } else {
+                saveAndRefresh();
+                checkInningOrOverCompletion();
+            }
         }
 
         function triggerWicketPopup() {
@@ -819,8 +827,15 @@
                         matchData.striker = matchData.nonStriker;
                         matchData.nonStriker = '';
                         
-                        saveAndRefresh();
-                        checkInningOrOverCompletion();
+                        if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+                            matchData.lastBowler = matchData.bowler;
+                            matchData.currentOverBalls = [];
+                            saveAndRefresh();
+                            triggerNewBowlerPopup();
+                        } else {
+                            saveAndRefresh();
+                            checkInningOrOverCompletion();
+                        }
                         return;
                     } else {
                         if (matchData.batsmanStats[outBatsman]) {
@@ -866,12 +881,6 @@
             
             if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || (!matchData.striker && !matchData.nonStriker)) {
                 handleInningEnd();
-            } else if (matchData.balls > 0 && matchData.balls % 6 === 0) {
-                // 6 બોલ પૂરા થતાં જ નવો બોલર બદલવા માટેનું પોપઅપ ટ્રિગર કરો
-                matchData.lastBowler = matchData.bowler;
-                matchData.currentOverBalls = [];
-                saveAndRefresh();
-                triggerNewBowlerPopup();
             }
         }
 
@@ -1191,6 +1200,15 @@
                         initializePlayerStats(selectedVal);
                     } else {
                         matchData.striker = '';
+                    }
+
+                    // વિકેટ પડ્યા પછી પણ જો 6 બોલ પૂરા થયા હોય તો નવો બોલર પૂછાવવો જોઈએ
+                    if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+                        matchData.lastBowler = matchData.bowler;
+                        matchData.currentOverBalls = [];
+                        saveAndRefresh();
+                        triggerNewBowlerPopup();
+                        return;
                     }
                 }
             }
