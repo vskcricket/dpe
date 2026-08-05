@@ -638,7 +638,6 @@
             tbody.innerHTML = '';
             
             let order = matchData.battingOrder || [];
-            // જો કોઈ બેટ્સમેન લિસ્ટમાં રહી ગયો હોય તો તેને ઉમેરી દેવા માટે
             for (let name in matchData.batsmanStats) {
                 if (!order.includes(name)) {
                     order.push(name);
@@ -759,8 +758,8 @@
                 return;
             }
 
-            checkInningOrOverCompletion();
             saveAndRefresh();
+            checkInningOrOverCompletion();
         }
 
         function triggerWicketPopup() {
@@ -844,9 +843,10 @@
             
             if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || (!matchData.striker && !matchData.nonStriker)) {
                 handleInningEnd();
-            } else if (matchData.balls % 6 === 0) {
+            } else if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
+                saveAndRefresh();
                 triggerBowlerPopup();
             }
         }
@@ -881,6 +881,9 @@
                 matchData.bowlerStats = {};
                 matchData.battingOrder = [];
                 matchData.currentOverBalls = [];
+                matchData.striker = '';
+                matchData.nonStriker = '';
+                matchData.bowler = '';
 
                 saveAndRefresh();
                 triggerStartInningSetup();
@@ -1148,10 +1151,7 @@
                     matchData.bowlerStats[bowler].wickets += 1;
 
                     matchData.striker = selectedVal;
-                    if (!matchData.battingOrder) matchData.battingOrder = [];
-                    if (!matchData.battingOrder.includes(selectedVal)) {
-                        matchData.battingOrder.push(selectedVal);
-                    }
+                    if (!matchData.battingOrder) matchData.battingOrder.push(selectedVal);
                     initializePlayerStats(selectedVal);
                 } else if (popupType === 'new_bowler') {
                     matchData.bowler = selectedVal;
