@@ -721,6 +721,7 @@
 
             if (!matchData.striker) {
                 alert('કોઈ બેટ્સમેન ક્રિઝ પર નથી!');
+                handleInningEnd();
                 return;
             }
 
@@ -771,6 +772,7 @@
 
             if (!matchData.striker) {
                 alert('બધા બેટ્સમેન આઉટ થઈ ગયા છે!');
+                handleInningEnd();
                 return;
             }
 
@@ -812,16 +814,11 @@
                     matchData.bowlerStats[bowler].legalBalls += 1;
                     matchData.bowlerStats[bowler].wickets += 1;
 
-                    if (matchData.nonStriker) {
-                        matchData.striker = matchData.nonStriker;
-                        matchData.nonStriker = '';
-                    } else {
-                        matchData.striker = '';
-                        matchData.nonStriker = '';
-                    }
+                    matchData.striker = '';
+                    matchData.nonStriker = '';
 
                     saveAndRefresh();
-                    checkInningOrOverCompletion();
+                    handleInningEnd();
                     return;
                 }
 
