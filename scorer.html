@@ -714,7 +714,7 @@
 
         function addRuns(runs) {
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-            // અહીં 9 ખેલાડી આઉટ થાય કે 10 વિકેટ પડે તો જ અટકે તે બદલે ફક્ત ત્યારે જ અટકે જ્યારે બધા (10) આઉટ થાય અથવા કોઈ બેટ્સમેન જ ન બચે
+            
             if (matchData.balls >= totalBallsAllowed || matchData.wickets >= 10 || (!matchData.striker && (!matchData.nonStriker || matchData.nonStriker === '-'))) {
                 handleInningEnd();
                 return;
@@ -731,14 +731,21 @@
             let striker = matchData.striker;
             let bowler = matchData.bowler;
 
-            initializePlayerStats(striker);
+            if ((!striker || striker === '-') && matchData.nonStriker && matchData.nonStriker !== '-') {
+                matchData.striker = matchData.nonStriker;
+                matchData.nonStriker = '-';
+                striker = matchData.striker;
+            }
+
+            if (striker && striker !== '-') {
+                initializePlayerStats(striker);
+                matchData.batsmanStats[striker].runs += runs;
+                matchData.batsmanStats[striker].balls += 1;
+                if (runs === 4) matchData.batsmanStats[striker].fours += 1;
+                if (runs === 6) matchData.batsmanStats[striker].sixes += 1;
+            }
+
             initializeBowlerStats(bowler);
-
-            matchData.batsmanStats[striker].runs += runs;
-            matchData.batsmanStats[striker].balls += 1;
-            if (runs === 4) matchData.batsmanStats[striker].fours += 1;
-            if (runs === 6) matchData.batsmanStats[striker].sixes += 1;
-
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
@@ -814,7 +821,6 @@
                 document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો (અથવા સોલો માટે `-` રાખો):';
                 
                 let html = '<select id="popupSelect">';
-                // જો 9 ખેલાડી આઉટ થઈ ગયા હોય અને 10મો ખેલાડી એકલો રમવા માંગતો હોય, તો આ '-' વિકલ્પ ઇનિંગ્સ અટકવા નહીં દે
                 html += '<option value="-">- (Solo Player / કોઈ નહીં - છેલ્લો ખેલાડી એકલો રમશે) -</option>';
                 
                 filteredPlayers.forEach(p => {
@@ -829,8 +835,6 @@
 
         function checkInningOrOverCompletion() {
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-            // 9 ખેલાડી આઉટ થાય છતાં 10મો ખેલાડી રમી શકે તે માટે અહીં વિકેટની મર્યાદા 10 કે તેથી વધુ રાખવામાં આવી છે, 
-            // અને જો બંને બેટ્સમેન ગાયબ કે આઉટ હોય તો જ ઇનિંગ્સ પૂરી થશે.
             let maxPossibleWickets = 10;
             
             if (matchData.balls >= totalBallsAllowed || matchData.wickets >= maxPossibleWickets || (!matchData.striker && (!matchData.nonStriker || matchData.nonStriker === '-'))) {
