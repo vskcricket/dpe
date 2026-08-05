@@ -741,7 +741,6 @@
             matchData.bowlerStats[bowler].legalBalls += 1;
             matchData.bowlerStats[bowler].runs += runs;
 
-            // જો નોન-સ્ટ્રાઈકર હાજર હોય તો જ રન બદલાય (સોલો પ્લેયર હોય તો એ જ સ્ટ્રાઈક પર રહે)
             if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
                 let temp = matchData.striker;
                 matchData.striker = matchData.nonStriker;
@@ -757,7 +756,6 @@
             if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
-                // ઓવર પૂરી થતાં જો સોલો પ્લેયર એકલો હોય તો સ્ટ્રાઈક બદલવાની જરૂર નથી, બાકી ઓવર બદલાય ત્યારે સ્ટ્રાઈક બદલાય
                 if (matchData.nonStriker && matchData.nonStriker !== '-') {
                     let temp = matchData.striker;
                     matchData.striker = matchData.nonStriker;
@@ -811,75 +809,19 @@
                     }
                 });
 
-                if (filteredPlayers.length === 0) {
-                    saveStateBeforeAction();
-                    let outBatsman = matchData.striker;
-                    
-                    if (matchData.nonStriker && matchData.nonStriker !== '-') {
-                        if (matchData.batsmanStats[outBatsman]) {
-                            matchData.batsmanStats[outBatsman].status = 'out';
-                            matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
-                            matchData.batsmanStats[outBatsman].balls += 1;
-                        }
-                        matchData.wickets += 1;
-                        matchData.balls += 1;
-
-                        if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
-                        matchData.currentOverBalls.push("W");
-
-                        let bowler = matchData.bowler;
-                        initializeBowlerStats(bowler);
-                        matchData.bowlerStats[bowler].legalBalls += 1;
-                        matchData.bowlerStats[bowler].wickets += 1;
-
-                        matchData.striker = matchData.nonStriker;
-                        matchData.nonStriker = '-';
-                        
-                        if (matchData.balls > 0 && matchData.balls % 6 === 0) {
-                            matchData.lastBowler = matchData.bowler;
-                            matchData.currentOverBalls = [];
-                            saveAndRefresh();
-                            triggerNewBowlerPopup();
-                        } else {
-                            saveAndRefresh();
-                            checkInningOrOverCompletion();
-                        }
-                        return;
-                    } else {
-                        // **SOLO PLAYER LOGIC:** જો 9મો ખેલાડી એકલો જ રમતો હોય અને તે પણ આઉટ થાય, તો જ ઇનિંગ પૂરી થાય!
-                        if (matchData.batsmanStats[outBatsman]) {
-                            matchData.batsmanStats[outBatsman].status = 'out';
-                            matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
-                            matchData.batsmanStats[outBatsman].balls += 1;
-                        }
-                        matchData.wickets += 1;
-                        matchData.balls += 1;
-
-                        if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
-                        matchData.currentOverBalls.push("W");
-
-                        let bowler = matchData.bowler;
-                        initializeBowlerStats(bowler);
-                        matchData.bowlerStats[bowler].legalBalls += 1;
-                        matchData.bowlerStats[bowler].wickets += 1;
-
-                        matchData.striker = '';
-                        matchData.nonStriker = '-';
-
-                        saveAndRefresh();
-                        handleInningEnd();
-                        return;
-                    }
-                }
-
+                // **સુધારો (Fix):** જો નવા ખેલાડી ઉપલબ્ધ ન હોય, તો ડ્રોપડાઉનમાં "- (Solo Player / કોઈ નહીં)" નો વિકલ્પ ફરજિયાત દેખાશે જેથી યુઝર તેને સોલો રમાડવા માટે પસંદ કરી શકે.
                 popupType = 'new_batsman';
                 document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો:';
                 
-                let html = '<select id="popupSelect"><option value="">-- Select New Batsman --</option>';
+                let html = '<select id="popupSelect">';
+                // જો કોઈ નવો ખેલાડી ન બચ્યો હોય, તો સોલો ઓપ્શન પહેલો રહેશે
+                html += '<option value="-">- (Solo Player / કોઈ નહીં) -</option>';
+                
                 filteredPlayers.forEach(p => {
                     html += `<option value="${p}">${p}</option>`;
                 });
                 html += '</select>';
+
                 document.getElementById('modalBody').innerHTML = html;
                 document.getElementById('popupModal').style.display = 'flex';
             });
@@ -1139,7 +1081,6 @@
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
 
-                // અહીં નોન-સ્ટ્રાઈકરમાં સોલો પ્લેયર (- / કોઈ નહીં) પસંદ કરવા માટેનો વિકલ્પ ઉપલબ્ધ છે
                 html += '<label style="font-size:10px; color:#38bdf8;">Non-Striker:</label><select id="p2"><option value="-">- (Solo Player / કોઈ નહીં) -</option>';
                 battingPlayers.forEach(p => html += `<option value="${p}">${p}</option>`);
                 html += '</select>';
@@ -1212,7 +1153,7 @@
                 matchData.bowlerStats[bowler].legalBalls += 1;
                 matchData.bowlerStats[bowler].wickets += 1;
 
-                if (selectedVal && selectedVal !== "") {
+                if (selectedVal && selectedVal !== "-") {
                     matchData.striker = selectedVal;
                     if (!matchData.battingOrder.includes(selectedVal)) {
                         matchData.battingOrder.push(selectedVal);
