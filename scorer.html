@@ -759,7 +759,6 @@
                 return;
             }
 
-            // ચેક કરો કે 6 બોલ પૂરા થયા કે નહીં
             if (matchData.balls > 0 && matchData.balls % 6 === 0) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
@@ -785,8 +784,16 @@
             }
 
             teamsRef.once('value', (snapshot) => {
-                let savedTeams = snapshot.val() || [];
-                let battingObj = Object.values(savedTeams).find(t => t.name === matchData.battingTeam);
+                let savedTeams = snapshot.val() || {};
+                let battingObj = null;
+                
+                // ટીમનું નામ સરખાવીને ટીમ ડેટા મેળવો
+                for (let key in savedTeams) {
+                    if (savedTeams[key].name === matchData.battingTeam) {
+                        battingObj = savedTeams[key];
+                        break;
+                    }
+                }
 
                 let availablePlayers = [];
                 if (battingObj && battingObj.players) {
@@ -863,9 +870,9 @@
                 }
 
                 popupType = 'new_batsman';
-                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો (અથવા સ્કીપ કરો):';
+                document.getElementById('modalTitle').innerText = '❌ વિકેટ પડી ગઈ! નવા બેટ્સમેનને પસંદ કરો:';
                 
-                let html = '<select id="popupSelect"><option value="">-- No New Batsman (Play Solo) --</option>';
+                let html = '<select id="popupSelect"><option value="">-- Select New Batsman --</option>';
                 filteredPlayers.forEach(p => {
                     html += `<option value="${p}">${p}</option>`;
                 });
@@ -889,8 +896,16 @@
             document.getElementById('modalTitle').innerText = `🔄 ઓવર પૂરી થઈ! આગામી ઓવર માટે નવો બોલર પસંદ કરો:`;
             
             teamsRef.once('value', (snapshot) => {
-                let savedTeams = snapshot.val() || [];
-                let bowlingObj = Object.values(savedTeams).find(t => t.name === matchData.bowlingTeam);
+                let savedTeams = snapshot.val() || {};
+                let bowlingObj = null;
+
+                for (let key in savedTeams) {
+                    if (savedTeams[key].name === matchData.bowlingTeam) {
+                        bowlingObj = savedTeams[key];
+                        break;
+                    }
+                }
+
                 let bowlingPlayers = (bowlingObj && bowlingObj.players) ? bowlingObj.players : [];
 
                 let html = '<select id="popupSelect"><option value="">-- Select New Bowler --</option>';
@@ -1088,7 +1103,7 @@
                 secondInning: matchData.secondInningSummary || null
             };
 
-            db.ref('match_history').push(historyData).then(() => {
+        db.ref('match_history').push(historyData).then(() => {
                 matchRef.remove();
                 window.location.href = 'history.html';
             }).catch((error) => {
@@ -1105,9 +1120,14 @@
             document.getElementById('modalTitle').innerText = `🚀 ${matchData.battingTeam} ની બેટિંગ - ઓપનર્સ અને બોલર પસંદ કરો:`;
             
             teamsRef.once('value', (snapshot) => {
-                let savedTeams = snapshot.val() || [];
-                let battingObj = Object.values(savedTeams).find(t => t.name === matchData.battingTeam);
-                let bowlingObj = Object.values(savedTeams).find(t => t.name === matchData.bowlingTeam);
+                let savedTeams = snapshot.val() || {};
+                let battingObj = null;
+                let bowlingObj = null;
+
+                for (let key in savedTeams) {
+                    if (savedTeams[key].name === matchData.battingTeam) battingObj = savedTeams[key];
+                    if (savedTeams[key].name === matchData.bowlingTeam) bowlingObj = savedTeams[key];
+                }
 
                 let battingPlayers = (battingObj && battingObj.players) ? battingObj.players : [];
                 let bowlingPlayers = (bowlingObj && bowlingObj.players) ? bowlingObj.players : [];
@@ -1167,33 +1187,48 @@
                 initializeBowlerStats(newBowler);
             } else if (popupType === 'new_batsman') {
                 let selectedVal = document.getElementById('popupSelect').value;
+                if (!selectedVal) {
+                    alert('કૃપા કરીને નવો બેટ્સમેન સિલેક્ટ કરો!');
+                    return;
+                }
+
                 let outBatsman = matchData.striker;
-                
                 if (matchData.batsmanStats[outBatsman]) {
                     matchData.batsmanStats[outBatsman].status = 'out';
                     matchData.batsmanStats[outBatsman].outBy = matchData.bowler;
                 }
 
-                if (!selectedVal && matchData.nonStriker && matchData.nonStriker !== '-') {
-                    matchData.striker = matchData.nonStriker;
-                    matchData.nonStriker = '';
-                } else if (selectedVal) {
-                    if (!matchData.nonStriker || matchData.nonStriker === '-') {
-                        matchData.striker = selectedVal;
-                    } else {
-                        matchData.striker = matchData.nonStriker;
-                        matchData.nonStriker = selectedVal;
-                    }
-                    if (!matchData.battingOrder.includes(selectedVal)) matchData.battingOrder.push(selectedVal);
-                    initializePlayerStats(selectedVal);
-                } else {
-                    matchData.striker = '';
+                matchData.wickets += 1;
+                matchData.balls += 1;
+
+                if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
+                matchData.currentOverBalls.push("W");
+
+                let bowler = matchData.bowler;
+                initializeBowlerStats(bowler);
+                matchData.bowlerStats[bowler].legalBalls += 1;
+                matchData.bowlerStats[bowler].wickets += 1;
+
+                matchData.striker = selectedVal;
+                if (!matchData.battingOrder.includes(selectedVal)) {
+                    matchData.battingOrder.push(selectedVal);
+                }
+                initializePlayerStats(selectedVal);
+
+                if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+                    matchData.lastBowler = matchData.bowler;
+                    matchData.currentOverBalls = [];
                 }
             }
 
             document.getElementById('popupModal').style.display = 'none';
             saveAndRefresh();
-            checkInningOrOverCompletion();
+            
+            if (popupType === 'new_batsman' && matchData.balls > 0 && matchData.balls % 6 === 0) {
+                triggerNewBowlerPopup();
+            } else {
+                checkInningOrOverCompletion();
+            }
         }
 
         function saveAndRefresh() {
