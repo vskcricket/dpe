@@ -714,7 +714,7 @@
 
         function addRuns(runs) {
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-            if (matchData.balls >= totalBallsAllowed) {
+            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= 10 || (!matchData.striker && !matchData.nonStriker)) {
                 handleInningEnd();
                 return;
             }
@@ -764,7 +764,7 @@
 
         function triggerWicketPopup() {
             let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-            if (matchData.balls >= totalBallsAllowed) {
+            if (matchData.balls >= totalBallsAllowed || matchData.wickets >= 10) {
                 handleInningEnd();
                 return;
             }
@@ -816,7 +816,8 @@
                         matchData.striker = matchData.nonStriker;
                         matchData.nonStriker = '';
                     } else {
-                        matchData.striker = outBatsman;
+                        matchData.striker = '';
+                        matchData.nonStriker = '';
                     }
 
                     saveAndRefresh();
