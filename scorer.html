@@ -787,7 +787,6 @@
                 let savedTeams = snapshot.val() || {};
                 let battingObj = null;
                 
-                // ટીમનું નામ સરખાવીને ટીમ ડેટા મેળવો
                 for (let key in savedTeams) {
                     if (savedTeams[key].name === matchData.battingTeam) {
                         battingObj = savedTeams[key];
@@ -1103,7 +1102,7 @@
                 secondInning: matchData.secondInningSummary || null
             };
 
-        db.ref('match_history').push(historyData).then(() => {
+            db.ref('match_history').push(historyData).then(() => {
                 matchRef.remove();
                 window.location.href = 'history.html';
             }).catch((error) => {
@@ -1209,7 +1208,10 @@
                 matchData.bowlerStats[bowler].legalBalls += 1;
                 matchData.bowlerStats[bowler].wickets += 1;
 
+                // નિયમ મુજબ: જો સ્ટ્રાઈકર આઉટ થાય, તો નવો બેટ્સમેન સ્ટ્રાઈક પર આવશે 
+                // અને નોન-સ્ટ્રાઈકર પોતાની જગ્યા પર જ અકબંધ રહેશે.
                 matchData.striker = selectedVal;
+
                 if (!matchData.battingOrder.includes(selectedVal)) {
                     matchData.battingOrder.push(selectedVal);
                 }
