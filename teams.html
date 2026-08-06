@@ -107,6 +107,7 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
 
+        /* અહીં ખેલાડીઓને કોલમમાં ગોઠવવા માટે Grid Layout કર્યો છે */
         .player-select-box {
             max-height: 16vh;
             overflow-y: auto;
@@ -115,6 +116,10 @@
             border-radius: 10px;
             padding: 8px 10px;
             margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 6px;
+            align-content: start;
         }
 
         .player-select-box::-webkit-scrollbar, .teams-scroll-list::-webkit-scrollbar {
@@ -312,14 +317,17 @@
             loadPlayersForTeam();
         });
 
-        // 3. પ્લેયર સિલેક્શન ચેકબોક્સ બનાવવા
+        // 3. પ્લેયર સિલેક્શન ચેકબોક્સ બનાવવા (કોલમ ફોર્મેટમાં)
         function loadPlayersForTeam(currentTeamPlayers = []) {
             const container = document.getElementById('playerSelectionContainer');
             container.innerHTML = '';
 
             if (cloudPlayers.length === 0) {
-                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center;">કોઈ પ્લેયર ક્લાઉડ પર મળ્યા નથી! પહેલા Manage Players માંથી એડ કરો.</p>`;
+                container.style.display = 'block'; // જો મેસેજ હોય તો તેને ફુલ વિડથ રાખવા
+                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center; grid-column: 1 / -1;">કોઈ પ્લેયર ક્લાઉડ પર મળ્યા નથી! પહેલા Manage Players માંથી એડ કરો.</p>`;
                 return;
+            } else {
+                container.style.display = 'grid';
             }
 
             // અન્ય ટીમમાં વપરાયેલા ખેલાડીઓ શોધો
@@ -337,8 +345,9 @@
                 if (!assignedPlayers.includes(player) || currentTeamPlayers.includes(player)) {
                     let isChecked = currentTeamPlayers.includes(player) ? 'checked' : '';
                     container.innerHTML += `
-                        <label style="display: block; font-size: 11px; margin-bottom: 4px; color: #f1f5f9; cursor: pointer;">
-                            <input type="checkbox" name="selectedTeamPlayers" value="${player}" ${isChecked} style="margin-right: 6px;"> ${player}
+                        <label style="display: flex; align-items: center; font-size: 11px; color: #f1f5f9; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <input type="checkbox" name="selectedTeamPlayers" value="${player}" ${isChecked} style="margin-right: 6px; flex-shrink: 0;"> 
+                            <span style="overflow: hidden; text-overflow: ellipsis;" title="${player}">${player}</span>
                         </label>
                     `;
                     availableCount++;
@@ -346,6 +355,7 @@
             });
 
             if (availableCount === 0) {
+                container.style.display = 'block';
                 container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center;">બધા જ ખેલાડીઓ ટીમમાં વહેંચાઈ ગયા છે!</p>`;
             }
         }
@@ -402,7 +412,7 @@
                 db.ref('teams/' + key).remove();
                 if (editingKey === key) {
                     editingKey = null;
-                    document.getElementById('teamNameInput').value = '';
+                    document.getElementById('teamNameInput.value') = '';
                     document.getElementById('saveTeamBtn').innerText = 'Save Team';
                 }
             }
