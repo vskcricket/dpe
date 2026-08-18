@@ -3,166 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gully Cricket Scorer</title>
+    <title>VSK-DPE Cricket</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', sans-serif;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
         body {
             background: linear-gradient(-45deg, #0f172a, #1e1b4b, #311042, #090d16);
             background-size: 400% 400%;
             animation: gradientBG 12s ease infinite;
-            color: #f8fafc;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
+            color: #f8fafc; width: 100vw; height: 100vh; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; padding: 15px;
         }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .container {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
-            padding: 25px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-            text-align: center;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px;
+            padding: 25px; width: 100%; max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8); text-align: center;
         }
-
-        h2 {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        h2 { font-size: 22px; font-weight: 800; margin-bottom: 15px; background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-box, .dashboard { display: none; }
+        input[type="text"], select {
+            width: 100%; background: rgba(15, 23, 42, 0.95) !important;
+            border: 1px solid rgba(56, 189, 248, 0.4) !important; color: #ffffff !important;
+            padding: 12px 15px; border-radius: 12px; font-size: 13px; outline: none; margin-bottom: 15px;
         }
-
-        .login-box, .dashboard {
-            display: none;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.95) !important;
-            border: 1px solid rgba(56, 189, 248, 0.4) !important;
-            color: #ffffff !important;
-            padding: 12px 15px;
-            border-radius: 12px;
-            font-size: 13px;
-            outline: none;
-            margin-bottom: 15px;
-        }
-
         button, .menu-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 12px;
-            text-align: center;
+            width: 100%; background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white; border: none; padding: 12px 20px; border-radius: 12px;
+            font-weight: 600; font-size: 13px; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); transition: all 0.3s ease;
+            text-decoration: none; display: block; margin-bottom: 12px; text-align: center;
         }
-
-        button:hover, .menu-btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.15);
-        }
-
-        .welcome-msg {
-            font-size: 14px;
-            color: #38bdf8;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
+        button:hover, .menu-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+        .welcome-msg { font-size: 14px; color: #38bdf8; margin-bottom: 15px; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- 1. Login Screen (જો નામ સેવ ન હોય તો દેખાશે) -->
+        <!-- 1. Login Screen -->
         <div id="loginScreen" class="login-box">
             <h2>👋 Welcome to Gully Cricket</h2>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">તમારું નામ દાખલ કરો જેથી તમારી ટીમ અને સ્કોર સેવ થઈ શકે:</p>
-            <input type="text" id="usernameInput" placeholder="Enter your full name...">
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">તમારું નામ પસંદ કરો અથવા લખો:</p>
+            
+            <select id="userDropdown">
+                <option value="">-- નામ પસંદ કરો --</option>
+            </select>
+
+            <input type="text" id="usernameInput" placeholder="અથવા નવું નામ લખો...">
             <button onclick="saveUser()">Login / Continue</button>
         </div>
 
-        <!-- 2. Dashboard Screen (લોગિન થયા પછી દેખાશે) -->
+        <!-- 2. Dashboard Screen -->
         <div id="dashboardScreen" class="dashboard">
-            <h2> Cricket Dashboard</h2>
+            <h2>🏏 Cricket Dashboard</h2>
             <div class="welcome-msg" id="displayUsername"></div>
 
-            <a href="teams.html" class="menu-btn"> Manage Teams</a>
-            <a href="players.html" class="menu-btn"> Manage Players</a>
-            <a href="#" onclick="checkScorerAndStart()" class="menu-btn">⚡ Start Live Match (Scorer)</a>
-                        <!-- index.html માં આ બટન અને સ્ક્રિપ્ટ મૂકો -->
-                <button onclick="checkAndOpenLiveScore()">📊 View Live Score</button>
-            <a href="history.html" class="menu-btn"> 📜 મેચ હિસ્ટ્રી (History)</a>   
-<script>
-    function checkAndOpenLiveScore() {
-        let liveData = JSON.parse(localStorage.getItem('live_match_data'));
-        
-        // જો લાઈવ મેચનો ડેટા સેવ હશે તો સીધો સ્કોરર પેજ પર જશે
-        if (liveData && liveData.team1 && liveData.battingTeam) {
-            window.location.href = 'scorer.html';
-        } else {
-            // જો મેચ શરૂ જ ન થયો હોય તો સેટઅપ પેજ પર મોકલશે
-            alert('હાલમાં કોઈ લાઈવ મેચ ચાલુ નથી! કૃપા કરીને પહેલા મેચ સેટઅપ કરો.');
-            window.location.href = 'scorer.html';
-        }
-    }
-</script>
+            <a href="teams.html" class="menu-btn">👥 Manage Teams</a>
+            <a href="players.html" class="menu-btn">🏃 Manage Players</a>
+            <a href="match.html" class="menu-btn">⚙️ Match Setup</a>
+            <button onclick="checkAndOpenLiveScore()">📊 View Live Score</button>
+            <a href="history.html" class="menu-btn">📜 મેચ હિસ્ટ્રી (History)</a>   
             <button onclick="logoutUser()" style="background: linear-gradient(135deg, #ef4444, #b91c1c); margin-top: 15px;">🔄 Switch User / Logout</button>
         </div>
     </div>
 
     <script>
-        function checkScorerAndStart() {
-            const loggedUser = localStorage.getItem('cricket_logged_user');
-            const activeScorer = localStorage.getItem('active_scorer');
-    
-            // જો પહેલેથી બીજો કોઈ સ્કોરર એક્ટિવ હોય તો વોર્નિંગ આપવી
-            if (activeScorer && activeScorer !== loggedUser) {
-                alert(`⚠️ Warning: ${activeScorer} is already active as the Scorer for this match! You cannot join as a scorer.`);
-                return;
-            }
-    
-            // જો કોઈ એક્ટિવ ન હોય તો યૂઝરને સ્કોરર તરીકે સેટ કરી scorer.html (અથવા scorer.js સાથે જોડાયેલું પેજ) માં મોકલવા
-            localStorage.setItem('active_scorer', loggedUser);
-            window.location.href = 'match.html';
-        }
-    </script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAlzjpevvcsMYmxw3qrLg2wSPyeEeWjlcA",
+            authDomain: "vskcricket.firebaseapp.com",
+            databaseURL: "https://vskcricket-default-rtdb.firebaseio.com",
+            projectId: "vskcricket",
+            storageBucket: "vskcricket.firebasestorage.app",
+            messagingSenderId: "958856613764",
+            appId: "1:958856613764:web:38dea869966b3d62c257d1",
+            measurementId: "G-M9XFXE93HE"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <script>
-        const currentUser = localStorage.getItem('cricket_logged_user');
+        // ડેટાબેઝમાંથી લિસ્ટ લાવવા માટે
+        const userDropdown = document.getElementById('userDropdown');
+        db.ref('users').on('value', (snapshot) => {
+            userDropdown.innerHTML = '<option value="">-- નામ પસંદ કરો --</option>';
+            snapshot.forEach((child) => {
+                let name = child.val().name;
+                let opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                userDropdown.appendChild(opt);
+            });
+        });
 
+        const currentUser = sessionStorage.getItem('cricket_logged_user');
         if (!currentUser) {
             document.getElementById('loginScreen').style.display = 'block';
         } else {
@@ -170,13 +107,22 @@
         }
 
         function saveUser() {
-            const name = document.getElementById('usernameInput').value.trim();
-            if (name === '') {
-                alert('કૃપા કરીને તમારું નામ લખો!');
+            const dropdownName = document.getElementById('userDropdown').value;
+            const inputName = document.getElementById('usernameInput').value.trim();
+            const finalName = inputName !== '' ? inputName : dropdownName;
+
+            if (finalName === '') {
+                alert('કૃપા કરીને તમારું નામ પસંદ કરો અથવા લખો!');
                 return;
             }
-            localStorage.setItem('cricket_logged_user', name);
-            showDashboard(name);
+
+            // જો નવું નામ હોય તો જ ડેટાબેઝમાં સેવ કરો
+            if (inputName !== '') {
+                db.ref('users').push({ name: finalName });
+            }
+
+            sessionStorage.setItem('cricket_logged_user', finalName);
+            showDashboard(finalName);
         }
 
         function showDashboard(name) {
@@ -186,10 +132,21 @@
         }
 
         function logoutUser() {
-            localStorage.removeItem('cricket_logged_user');
+            sessionStorage.removeItem('cricket_logged_user');
             location.reload();
         }
-        
+
+        function checkAndOpenLiveScore() {
+            db.ref('matches/default_match').once('value', (snapshot) => {
+                let liveData = snapshot.val();
+                if (liveData && liveData.team1 && liveData.battingTeam) {
+                    window.location.href = 'scorer.html';
+                } else {
+                    alert('હાલમાં કોઈ લાઈવ મેચ ચાલુ નથી! કૃપા કરીને પહેલા મેચ સેટઅપ કરો.');
+                    window.location.href = 'match.html';
+                }
+            });
+        }
     </script>
 </body>
 </html>
