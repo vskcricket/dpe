@@ -845,6 +845,28 @@
         matchData.bowlerStats[bowler].legalBalls += 1;
         matchData.bowlerStats[bowler].runs += runs;
 
+        // ૨. ઓવર પૂરી થવાની કંડિશન તપાસો (સાચું ઓટોમેટિક રોટેશન લોજીક)
+        if (matchData.balls > 0 && matchData.balls % 6 === 0) {
+            matchData.lastBowler = matchData.bowler;
+            matchData.currentOverBalls = [];
+            
+            // જો છેલ્લા બોલે ઈવન રન (૦, ૨, ૪, ૬) આવ્યા હોય તો ઓવર પૂરી થતાં બેટ્સમેન બદલાશે
+            if (runs % 2 === 0) {
+                if (matchData.nonStriker && matchData.nonStriker !== '-') {
+                    let temp = matchData.striker;
+                    matchData.striker = matchData.nonStriker;
+                    matchData.nonStriker = temp;
+                }
+            }
+
+            saveAndRefresh();
+            setTimeout(() => {
+                triggerNewBowlerPopup();
+            }, 100);
+            return;
+        }
+
+        // ૩. સામાન્ય બોલ માટે ઓડ રન ચેક
         if (runs % 2 !== 0 && matchData.nonStriker && matchData.nonStriker !== '-') {
             let temp = matchData.striker;
             matchData.striker = matchData.nonStriker;
@@ -862,16 +884,8 @@
             return;
         }
 
-        if (matchData.balls > 0 && matchData.balls % 6 === 0) {
-            matchData.lastBowler = matchData.bowler;
-            matchData.currentOverBalls = [];
-            
-            saveAndRefresh();
-            triggerNewBowlerPopup();
-        } else {
-            saveAndRefresh();
-            checkInningOrOverCompletion();
-        }
+        saveAndRefresh();
+        checkInningOrOverCompletion();
     }
 
     function triggerWicketPopup() {
@@ -908,7 +922,6 @@
             let filteredPlayers = [];
             availablePlayers.forEach(p => {
                 let stat = matchData.batsmanStats[p];
-                // અહીં જ્યુ બેટ્સમેન out નથી કે active નથી, અથવા જે retire_hurt છે તેને પણ લિસ્ટમાં બતાવી શકાય જેથી તે પાછો આવી શકે
                 if (!stat || stat.status !== 'out') {
                     if (p !== matchData.striker && p !== matchData.nonStriker) {
                         filteredPlayers.push(p);
@@ -1291,7 +1304,6 @@
             initializePlayerStats(s);
             if (matchData.nonStriker !== '-') initializePlayerStats(matchData.nonStriker);
             
-            // જો શરૂઆત વખતે પસંદ કરેલા ખેલાડી અગાઉ Retire Hurt થયા હોય તો તેમનું સ્ટેટસ 'not out' કરી નાખો
             if (matchData.batsmanStats[s]) matchData.batsmanStats[s].status = 'batting';
             if (matchData.nonStriker !== '-' && matchData.batsmanStats[matchData.nonStriker]) {
                 matchData.batsmanStats[matchData.nonStriker].status = 'batting';
@@ -1340,7 +1352,6 @@
                 }
                 initializePlayerStats(selectedVal);
                 
-                // **મુખ્ય સુધારો:** જો Retire Hurt થયેલ ખેલાડી ફરીથી મેદાન પર આવે, તો તેનું સ્ટેટસ 'not out' (batting) થઈ જાય
                 if (matchData.batsmanStats[selectedVal]) {
                     matchData.batsmanStats[selectedVal].status = 'batting';
                 }
