@@ -24,12 +24,10 @@
             background-size: 400% 400%;
             animation: gradientBG 12s ease infinite;
             color: #f8fafc;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 15px;
+            padding: 10px;
         }
 
         @keyframes gradientBG {
@@ -45,14 +43,14 @@
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 20px;
-            border-radius: 14px;
-            margin-bottom: 12px;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
 
         h2 {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 800;
             background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
             -webkit-background-clip: text;
@@ -61,7 +59,7 @@
 
         .back-link a {
             color: #94a3b8;
-            font-size: 12px;
+            font-size: 11px;
             text-decoration: none;
             font-weight: 600;
         }
@@ -71,31 +69,36 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             flex-grow: 1;
-            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr 1.2fr 1fr;
+            }
         }
 
         .panel {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            overflow: hidden;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            min-height: 250px;
         }
 
         .panel h3 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #38bdf8;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -105,13 +108,14 @@
             flex-grow: 1;
             background: rgba(10, 15, 30, 0.6);
             border: 2px dashed rgba(56, 189, 248, 0.3);
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 10px;
+            padding: 8px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            min-height: 150px;
+            gap: 6px;
+            min-height: 120px;
+            max-height: 200px;
         }
 
         .drop-zone.drag-over {
@@ -122,7 +126,7 @@
         .player-card {
             background: rgba(30, 41, 59, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
@@ -130,21 +134,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .player-card:active {
-            cursor: grabbing;
-        }
-
-        .player-card:hover {
-            border-color: #38bdf8;
-            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .team-config-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         input[type="text"] {
@@ -152,16 +146,16 @@
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(56, 189, 248, 0.4);
             color: #ffffff;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             font-size: 12px;
             outline: none;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         input[type="text"]:focus {
             border-color: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
         }
 
         .action-btn {
@@ -169,15 +163,13 @@
             background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            margin-top: 10px;
             transition: all 0.2s ease;
-            grid-column: 1 / -1;
         }
 
         .action-btn:hover {
@@ -186,12 +178,12 @@
         }
 
         .footer-action {
-            margin-top: 12px;
+            margin: 15px 0 10px 0;
             flex-shrink: 0;
         }
 
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         ::-webkit-scrollbar-thumb {
             background: #38bdf8;
@@ -203,23 +195,24 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
+            padding: 0 5px;
         }
     </style>
 </head>
 <body>
 
     <div class="main-header">
-        <h2>🛡️ Pro Team Selector & Telegram Integration</h2>
+        <h2>🛡️ Pro Team Selector & Telegram</h2>
         <div class="back-link">
-            <a href="index.html">🏠 Back to Home</a>
+            <a href="index.html">🏠 Home</a>
         </div>
     </div>
 
     <div class="workspace">
         <!-- Left Panel: Available Players -->
         <div class="panel">
-            <h3>👥 Available Players <span id="poolCount" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Drag players from here to any team:</p>
+            <h3>👥 Available Players <span id="poolCount" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Tap/Drag players to any team:</p>
             <div class="player-pool" id="playerPool" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToPool(event)"></div>
         </div>
 
@@ -228,7 +221,7 @@
             <div class="team-config-group">
                 <input type="text" id="team1Name" placeholder="Enter Team 1 Name..." value="Team Alpha">
             </div>
-            <h3>🛡️ Team 1 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <h3>🛡️ Team 1 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
             <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
             </div>
@@ -239,7 +232,7 @@
             <div class="team-config-group">
                 <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
             </div>
-            <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
             <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
             </div>
@@ -267,13 +260,12 @@
         const TELEGRAM_BOT_TOKEN = "8681899166:AAGylxqHZGXS0KrXjmbRI_ETtnSO0i7sQzE"; 
         const TELEGRAM_CHAT_ID = "680623524,586015094";
 
-        let allMasterPlayers = []; // ડેટાબેઝ પરના કુલ ખેલાડીઓ
+        let allMasterPlayers = []; 
         let team1Players = [];
         let team2Players = [];
 
         // 1. Firebase માંથી પ્લેયર્સ અને સેવ થયેલી ટીમો લોડ કરવી
         function loadDataFromFirebase() {
-            // પેલા બધા ખેલાડીઓ ફેચ કરો
             db.ref('players').once('value', (playerSnapshot) => {
                 const playerData = playerSnapshot.val();
                 allMasterPlayers = [];
@@ -283,7 +275,6 @@
                     });
                 }
 
-                // હવે ડેટાબેઝમાંથી છેલ્લે સેવ થયેલી ટીમો ચેક કરો જેથી રિફ્રેશ કરવા પર જતી ન રહે
                 db.ref('activeTeams').once('value', (teamSnapshot) => {
                     const teamData = teamSnapshot.val();
                     if (teamData) {
@@ -304,7 +295,6 @@
             });
         }
 
-        // રિયલ-ટાઇમ અપડેટ માટે લિસનર (કોઈ બીજું યુઝર બદલે તો પણ સિન્ક રહે)
         db.ref('activeTeams').on('value', (snapshot) => {
             const teamData = snapshot.val();
             if (teamData) {
@@ -320,7 +310,6 @@
             }
         });
 
-        // પેજ લોડ થતા જ ડેટા ફેચ કરો
         loadDataFromFirebase();
 
         // 2. UI રેન્ડર ફંક્શન
@@ -329,7 +318,6 @@
             const team1Container = document.getElementById('team1DropZone');
             const team2Container = document.getElementById('team2DropZone');
 
-            // ઉપલબ્ધ ખેલાડીઓ શોધો (જે ટીમ ૧ કે ટીમ ૨ માં ન હોય)
             let cloudPlayers = allMasterPlayers.filter(p => !team1Players.includes(p) && !team2Players.includes(p));
 
             poolContainer.innerHTML = '';
@@ -448,8 +436,6 @@
                 return;
             }
 
-            // ડેટાબેઝમાં 'activeTeams' તરીકે સેવ કરો જેથી રિફ્રેશ કે યુઝર બદલવા પર જતી ન રહે
-            // સાથોસાથ હિસ્ટ્રી માટે 'teams' માં પણ push કરી શકો છો[cite: 4]
             const activeTeamsRef = db.ref('activeTeams');
             const historyTeamsRef = db.ref('teams');
 
@@ -462,7 +448,6 @@
                 historyTeamsRef.push({ name: team2Name, players: team2Players })
             ])
             .then(() => {
-                // Telegram પર મેસેજ મોકલો
                 sendBothTeamsToTelegram(team1Name, team1Players, team2Name, team2Players);
             })
             .catch((error) => {
@@ -495,7 +480,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
+                    chat_id: TELEGRAM_CHAT_ID.split(',')[0].trim(), // પહેલી આઈડી પર મોકલવા માટે
                     text: finalMessage,
                     parse_mode: 'Markdown'
                 })
