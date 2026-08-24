@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             padding: 12px;
-            overflow-y: auto; /* આખું પેજ સ્ક્રોલ થવા માટે */
+            overflow-y: auto; /* આખું પેજ સ્ક્રોલ થશે */
         }
 
         @keyframes gradientBG {
@@ -104,7 +104,7 @@
             align-items: center;
         }
 
-        /* હવે પ્લેયર્સ વધશે તેમ બોક્સ ઓટોમેટિક મોટી થશે અને અંદર સ્ક્રોલ પણ રહેશે */
+        /* હવે અહીંથી ઇન્ડિવિડ્યુઅલ સ્ક્રોલ કાઢી નાખ્યું છે જેથી પ્લેયર્સ પ્રમાણે બોક્સ મોટું થશે */
         .drop-zone, .player-pool {
             background: rgba(10, 15, 30, 0.6);
             border: 2px dashed rgba(56, 189, 248, 0.3);
@@ -113,9 +113,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-height: 180px;
-            max-height: 350px;
-            overflow-y: auto; 
+            min-height: 120px;
         }
 
         .drop-zone.drag-over {
