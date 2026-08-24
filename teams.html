@@ -239,7 +239,6 @@
             <div class="team-config-group">
                 <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
             </div>
-            <!-- સુધારો અહીં કર્યો છે: team1Count ની જગ્યાએ team2Count કર્યું છે -->
             <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
             <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
@@ -266,32 +265,72 @@
 
         // 🤖 Telegram Bot Credentials
         const TELEGRAM_BOT_TOKEN = "8681899166:AAGylxqHZGXS0KrXjmbRI_ETtnSO0i7sQzE"; 
-        const TELEGRAM_CHAT_ID = "680623524";
+        const TELEGRAM_CHAT_ID = "680623524,586015094";
 
-        let cloudPlayers = [];
+        let allMasterPlayers = []; // ડેટાબેઝ પરના કુલ ખેલાડીઓ
         let team1Players = [];
         let team2Players = [];
 
-        // 1. Firebase માંથી પ્લેયર્સ લોડ કરવા[cite: 4]
-        db.ref('players').on('value', (snapshot) => {
-            const data = snapshot.val();
-            cloudPlayers = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    let playerName = data[key].name;
-                    if (!team1Players.includes(playerName) && !team2Players.includes(playerName)) {
-                        cloudPlayers.push(playerName);
+        // 1. Firebase માંથી પ્લેયર્સ અને સેવ થયેલી ટીમો લોડ કરવી
+        function loadDataFromFirebase() {
+            // પેલા બધા ખેલાડીઓ ફેચ કરો
+            db.ref('players').once('value', (playerSnapshot) => {
+                const playerData = playerSnapshot.val();
+                allMasterPlayers = [];
+                if (playerData) {
+                    Object.keys(playerData).forEach(key => {
+                        allMasterPlayers.push(playerData[key].name);
+                    });
+                }
+
+                // હવે ડેટાબેઝમાંથી છેલ્લે સેવ થયેલી ટીમો ચેક કરો જેથી રિફ્રેશ કરવા પર જતી ન રહે
+                db.ref('activeTeams').once('value', (teamSnapshot) => {
+                    const teamData = teamSnapshot.val();
+                    if (teamData) {
+                        if (teamData.team1) {
+                            document.getElementById('team1Name').value = teamData.team1.name || "Team Alpha";
+                            team1Players = teamData.team1.players || [];
+                        }
+                        if (teamData.team2) {
+                            document.getElementById('team2Name').value = teamData.team2.name || "Team Beta";
+                            team2Players = teamData.team2.players || [];
+                        }
+                    } else {
+                        team1Players = [];
+                        team2Players = [];
                     }
+                    renderUI();
                 });
+            });
+        }
+
+        // રિયલ-ટાઇમ અપડેટ માટે લિસનર (કોઈ બીજું યુઝર બદલે તો પણ સિન્ક રહે)
+        db.ref('activeTeams').on('value', (snapshot) => {
+            const teamData = snapshot.val();
+            if (teamData) {
+                if (teamData.team1) {
+                    document.getElementById('team1Name').value = teamData.team1.name || "Team Alpha";
+                    team1Players = teamData.team1.players || [];
+                }
+                if (teamData.team2) {
+                    document.getElementById('team2Name').value = teamData.team2.name || "Team Beta";
+                    team2Players = teamData.team2.players || [];
+                }
+                renderUI();
             }
-            renderUI();
         });
+
+        // પેજ લોડ થતા જ ડેટા ફેચ કરો
+        loadDataFromFirebase();
 
         // 2. UI રેન્ડર ફંક્શન
         function renderUI() {
             const poolContainer = document.getElementById('playerPool');
             const team1Container = document.getElementById('team1DropZone');
             const team2Container = document.getElementById('team2DropZone');
+
+            // ઉપલબ્ધ ખેલાડીઓ શોધો (જે ટીમ ૧ કે ટીમ ૨ માં ન હોય)
+            let cloudPlayers = allMasterPlayers.filter(p => !team1Players.includes(p) && !team2Players.includes(p));
 
             poolContainer.innerHTML = '';
             if (cloudPlayers.length === 0) {
@@ -378,17 +417,11 @@
             if (!playerName || origin === 'pool') return;
 
             removePlayerFromList(playerName, origin);
-            if (!cloudPlayers.includes(playerName)) {
-                cloudPlayers.push(playerName);
-            }
-
             renderUI();
         }
 
         function removePlayerFromList(playerName, origin) {
-            if (origin === 'pool') {
-                cloudPlayers = cloudPlayers.filter(p => p !== playerName);
-            } else if (origin === 'team1') {
+            if (origin === 'team1') {
                 team1Players = team1Players.filter(p => p !== playerName);
             } else if (origin === 'team2') {
                 team2Players = team2Players.filter(p => p !== playerName);
@@ -397,13 +430,10 @@
 
         function removeFromTeam(playerName, origin) {
             removePlayerFromList(playerName, origin);
-            if (!cloudPlayers.includes(playerName)) {
-                cloudPlayers.push(playerName);
-            }
             renderUI();
         }
 
-        // 3. એક જ ક્લિકમાં બંને ટીમ સેવ કરવી અને ટેલિગ્રામ પર મોકલવી
+        // 3. એક જ ક્લિકમાં બંને ટીમ સેવ કરવી, ડેટાબેઝમાં કાયમી રાખવી અને ટેલિગ્રામ પર મોકલવી
         function saveBothTeamsAndSendTelegram() {
             let team1Name = document.getElementById('team1Name').value.trim();
             let team2Name = document.getElementById('team2Name').value.trim();
@@ -418,12 +448,18 @@
                 return;
             }
 
-            // Firebase માં બંને ટીમ એકસાથે સેવ કરો[cite: 4]
-            const teamsRef = db.ref('teams');
-            
+            // ડેટાબેઝમાં 'activeTeams' તરીકે સેવ કરો જેથી રિફ્રેશ કે યુઝર બદલવા પર જતી ન રહે
+            // સાથોસાથ હિસ્ટ્રી માટે 'teams' માં પણ push કરી શકો છો[cite: 4]
+            const activeTeamsRef = db.ref('activeTeams');
+            const historyTeamsRef = db.ref('teams');
+
             Promise.all([
-                teamsRef.push({ name: team1Name, players: team1Players }),
-                teamsRef.push({ name: team2Name, players: team2Players })
+                activeTeamsRef.set({
+                    team1: { name: team1Name, players: team1Players },
+                    team2: { name: team2Name, players: team2Players }
+                }),
+                historyTeamsRef.push({ name: team1Name, players: team1Players }),
+                historyTeamsRef.push({ name: team2Name, players: team2Players })
             ])
             .then(() => {
                 // Telegram પર મેસેજ મોકલો
@@ -437,7 +473,7 @@
         // 4. Telegram API દ્વારા બંને ટીમનો એક જ મેસેજ મોકલવાનું ફંક્શન
         function sendBothTeamsToTelegram(t1Name, t1Players, t2Name, t2Players) {
             if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
-                alert('ટીમ Firebase માં સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
+                alert('ટીમ પર્મનન્ટ સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
                 return;
             }
 
@@ -467,7 +503,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
-                    alert('સફળતાપૂર્વક બંને ટીમ સેવ થઈ ગઈ અને ટેલિગ્રામ પર મેસેજ મોકલાઈ ગયો!');
+                    alert('ટીમ સફળતાપૂર્વક કાયમી સેવ થઈ ગઈ અને ટેલિગ્રામ પર મોકલાઈ ગઈ!');
                 } else {
                     alert('ટીમ સેવ થઈ ગઈ, પણ Telegram પર મેસેજ મોકલવામાં ભૂલ છે: ' + data.description);
                 }
