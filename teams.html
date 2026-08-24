@@ -27,7 +27,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 12px;
+            overflow-y: auto; /* આખું પેજ સ્ક્રોલ થવા માટે */
         }
 
         @keyframes gradientBG {
@@ -43,9 +44,9 @@
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-radius: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
@@ -70,8 +71,8 @@
         .workspace {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
-            flex-grow: 1;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         @media (min-width: 768px) {
@@ -87,9 +88,8 @@
             border-radius: 14px;
             display: flex;
             flex-direction: column;
-            padding: 12px;
+            padding: 14px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            min-height: 250px;
         }
 
         .panel h3 {
@@ -98,24 +98,24 @@
             color: #38bdf8;
             margin-bottom: 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 4px;
+            padding-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
+        /* હવે પ્લેયર્સ વધશે તેમ બોક્સ ઓટોમેટિક મોટી થશે અને અંદર સ્ક્રોલ પણ રહેશે */
         .drop-zone, .player-pool {
-            flex-grow: 1;
             background: rgba(10, 15, 30, 0.6);
             border: 2px dashed rgba(56, 189, 248, 0.3);
             border-radius: 10px;
-            padding: 8px;
-            overflow-y: auto;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            min-height: 120px;
-            max-height: 200px;
+            gap: 8px;
+            min-height: 180px;
+            max-height: 350px;
+            overflow-y: auto; 
         }
 
         .drop-zone.drag-over {
@@ -126,7 +126,7 @@
         .player-card {
             background: rgba(30, 41, 59, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 8px 10px;
+            padding: 9px 12px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
@@ -135,6 +135,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
         }
 
         .team-config-group {
@@ -146,7 +147,7 @@
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(56, 189, 248, 0.4);
             color: #ffffff;
-            padding: 8px 10px;
+            padding: 9px 12px;
             border-radius: 8px;
             font-size: 12px;
             outline: none;
@@ -178,12 +179,12 @@
         }
 
         .footer-action {
-            margin: 15px 0 10px 0;
+            margin-bottom: 15px;
             flex-shrink: 0;
         }
 
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
         }
         ::-webkit-scrollbar-thumb {
             background: #38bdf8;
@@ -480,7 +481,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID.split(',')[0].trim(), // પહેલી આઈડી પર મોકલવા માટે
+                    chat_id: TELEGRAM_CHAT_ID.split(',')[0].trim(),
                     text: finalMessage,
                     parse_mode: 'Markdown'
                 })
