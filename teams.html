@@ -111,7 +111,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-height: 200px;
+            min-height: 150px;
         }
 
         .drop-zone.drag-over {
@@ -166,22 +166,28 @@
 
         .action-btn {
             width: 100%;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
+            font-weight: 700;
+            font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
             margin-top: 10px;
             transition: all 0.2s ease;
+            grid-column: 1 / -1;
         }
 
         .action-btn:hover {
             transform: translateY(-2px);
             filter: brightness(1.15);
+        }
+
+        .footer-action {
+            margin-top: 12px;
+            flex-shrink: 0;
         }
 
         ::-webkit-scrollbar {
@@ -226,7 +232,6 @@
             <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
             </div>
-            <button class="action-btn" onclick="saveTeam('team1')">Save Team 1 & Send Telegram</button>
         </div>
 
         <!-- Right Panel: Team 2 Builder -->
@@ -234,12 +239,16 @@
             <div class="team-config-group">
                 <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
             </div>
-            <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <h3>⚔️ Team 2 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
             <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
             </div>
-            <button class="action-btn" style="background: linear-gradient(135deg, #ec4899, #be185d);" onclick="saveTeam('team2')">Save Team 2 & Send Telegram</button>
         </div>
+    </div>
+
+    <!-- Master Action Button for Single Click Save & Telegram -->
+    <div class="footer-action">
+        <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">🚀 Save Both Teams & Send Telegram</button>
     </div>
 
     <script>
@@ -254,7 +263,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 🤖 Telegram Bot Credentials (અહીં તમારું બોટ ટોકન અને ચેટ આઈડી નાખો)
+        // 🤖 Telegram Bot Credentials
         const TELEGRAM_BOT_TOKEN = "8681899166:AAGylxqHZGXS0KrXjmbRI_ETtnSO0i7sQzE"; 
         const TELEGRAM_CHAT_ID = "680623524";
 
@@ -262,7 +271,7 @@
         let team1Players = [];
         let team2Players = [];
 
-        // 1. Firebase માંથી પ્લેયર્સ લોડ કરવા[cite: 1]
+        // 1. Firebase માંથી પ્લેયર્સ લોડ કરવા
         db.ref('players').on('value', (snapshot) => {
             const data = snapshot.val();
             cloudPlayers = [];
@@ -301,7 +310,6 @@
                     team1Container.innerHTML += createPlayerCard(player, 'team1');
                 });
             }
-            document.getElementById('team1Count').innerText = team1Players.length;
 
             team2Container.innerHTML = '';
             if (team2Players.length === 0) {
@@ -311,7 +319,6 @@
                     team2Container.innerHTML += createPlayerCard(player, 'team2');
                 });
             }
-            document.getElementById('team2Count').innerText = team2Players.length;
         }
 
         function createPlayerCard(playerName, origin) {
@@ -393,41 +400,39 @@
             renderUI();
         }
 
-        // 3. ટીમ સેવ કરવી અને ટેલિગ્રામ પર મોકલવી
-        function saveTeam(teamKeyId) {
-            let teamNameInput = document.getElementById(teamKeyId === 'team1' ? 'team1Name' : 'team2Name');
-            let teamName = teamNameInput.value.trim();
-            let playersList = teamKeyId === 'team1' ? team1Players : team2Players;
+        // 3. એક જ ક્લિકમાં બંને ટીમ સેવ કરવી અને ટેલિગ્રામ પર મોકલવી
+        function saveBothTeamsAndSendTelegram() {
+            let team1Name = document.getElementById('team1Name').value.trim();
+            let team2Name = document.getElementById('team2Name').value.trim();
 
-            if (teamName === '') {
-                alert('કૃપા કરીને ટીમનું નામ દાખલ કરો!');
+            if (team1Name === '' || team2Name === '') {
+                alert('કૃપા કરીને બંને ટીમનું નામ દાખલ કરો!');
                 return;
             }
 
-            if (playersList.length === 0) {
-                alert('ટીમમાં ઓછામાં ઓછો એક ખેલાડી હોવો જરૂરી છે!');
+            if (team1Players.length === 0 || team2Players.length === 0) {
+                alert('બંને ટીમમાં ઓછામાં ઓછો એક-એક ખેલાડી હોવો જરૂરી છે!');
                 return;
             }
 
-            // Firebase માં સેવ કરો[cite: 1]
-            db.ref('teams').push({
-                name: teamName,
-                players: playersList
-            }).then(() => {
+            // Firebase માં બંને ટીમ એકસાથે સેવ કરો[cite: 1]
+            const teamsRef = db.ref('teams');
+            
+            Promise.all([
+                teamsRef.push({ name: team1Name, players: team1Players }),
+                teamsRef.push({ name: team2Name, players: team2Players })
+            ])
+            .then(() => {
                 // Telegram પર મેસેજ મોકલો
-                sendToTelegram(teamName, playersList);
-            }).catch((error) => {
+                sendBothTeamsToTelegram(team1Name, team1Players, team2Name, team2Players);
+            })
+            .catch((error) => {
                 alert('એરર: ' + error.message);
             });
         }
 
-        // 4. Telegram API દ્વારા મેસેજ મોકલવાનું ફંક્શન
+        // 4. Telegram API દ્વારા બંને ટીમનો એક જ મેસેજ મોકલવાનું ફંક્શન
         function sendToTelegram(teamName, players) {
-            if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
-                alert('ટીમ Firebase માં સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
-                return;
-            }
-
             let message = `🚨 *NEW CRICKET TEAM SAVED* 🚨\n\n`;
             message += `🛡️ *Team Name:* ${teamName}\n`;
             message += `👥 *Total Players:* ${players.length}\n\n`;
@@ -435,6 +440,24 @@
             players.forEach((player, index) => {
                 message += `${index + 1}. ${player}\n`;
             });
+            return message;
+        }
+
+        function sendBothTeamsToTelegram(t1Name, t1Players, t2Name, t2Players) {
+            if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
+                alert('ટીમ Firebase માં સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
+                return;
+            }
+
+            let finalMessage = `🏏 *CRICKET MATCH SQUADS* 🏏\n\n`;
+            finalMessage += `----------------------------\n`;
+            finalMessage += `🛡️ *${t1Name}* (${t1Players.length} Players)\n`;
+            t1Players.forEach((p, i) => finalMessage += `${i + 1}. ${p}\n`);
+            
+            finalMessage += `\n----------------------------\n`;
+            finalMessage += `⚔️ *${t2Name}* (${t2Players.length} Players)\n`;
+            t2Players.forEach((p, i) => finalMessage += `${i + 1}. ${p}\n`);
+            finalMessage += `----------------------------`;
 
             let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
@@ -445,14 +468,14 @@
                 },
                 body: JSON.stringify({
                     chat_id: TELEGRAM_CHAT_ID,
-                    text: message,
+                    text: finalMessage,
                     parse_mode: 'Markdown'
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
-                    alert(`સફળતાપૂર્વક ${teamName} સેવ થઈ અને Telegram પર મેસેજ મોકલાઈ ગયો!`);
+                    alert('સફળતાપૂર્વક બંને ટીમ સેવ થઈ ગઈ અને ટેલિગ્રામ પર મેસેજ મોકલાઈ ગયો!');
                 } else {
                     alert('ટીમ સેવ થઈ ગઈ, પણ Telegram પર મેસેજ મોકલવામાં ભૂલ છે: ' + data.description);
                 }
