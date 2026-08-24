@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Teams - Gully Cricket Scorer</title>
+    <title>Professional Team Selection - Gully Cricket Scorer</title>
     
     <!-- Firebase Realtime Database SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -28,8 +28,7 @@
             height: 100vh;
             overflow: hidden;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             padding: 15px;
         }
 
@@ -39,218 +38,224 @@
             100% { background-position: 0% 50%; }
         }
 
-        .container {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
-            padding: 18px 22px;
-            width: 100%;
-            max-width: 750px;
-            max-height: 92vh;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .top-section {
-            flex-shrink: 0;
-        }
-
-        .title-header {
+        /* Top Header Bar */
+        .main-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 6px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         h2 {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .count-badge {
-            background: rgba(56, 189, 248, 0.2);
-            border: 1px solid rgba(56, 189, 248, 0.5);
+        .back-link a {
+            color: #94a3b8;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link a:hover {
             color: #38bdf8;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
         }
 
-        .input-group {
-            margin-bottom: 8px;
+        /* Professional 3-Column Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 15px;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Scrollable List for Players & Drop Zones */
+        .drop-zone, .player-pool {
+            flex-grow: 1;
+            background: rgba(10, 15, 30, 0.6);
+            border: 2px dashed rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 200px;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+        }
+
+        /* Player Cards */
+        .player-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: grab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .player-card:active {
+            cursor: grabbing;
+        }
+
+        .player-card:hover {
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+        }
+
+        /* Inputs & Buttons */
+        .team-config-group {
+            margin-bottom: 10px;
         }
 
         input[type="text"] {
             width: 100%;
-            background: rgba(15, 23, 42, 0.95) !important;
-            border: 1px solid rgba(56, 189, 248, 0.4) !important;
-            color: #ffffff !important;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #ffffff;
             padding: 8px 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 12px;
             outline: none;
             margin-bottom: 6px;
         }
 
         input[type="text"]:focus {
-            border-color: #38bdf8 !important;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
         }
 
-        /* અહીં ખેલાડીઓને કોલમમાં ગોઠવવા માટે Grid Layout કર્યો છે */
-        .player-select-box {
-            max-height: 16vh;
-            overflow-y: auto;
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            border-radius: 10px;
-            padding: 8px 10px;
-            margin-bottom: 8px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 6px;
-            align-content: start;
-        }
-
-        .player-select-box::-webkit-scrollbar, .teams-scroll-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .player-select-box::-webkit-scrollbar-thumb, .teams-scroll-list::-webkit-scrollbar-thumb {
-            background: #38bdf8;
-            border-radius: 4px;
-        }
-
-        button {
+        .action-btn {
             width: 100%;
             background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px;
             border-radius: 10px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            margin-top: 10px;
             transition: all 0.2s ease;
         }
 
-        button:hover {
+        .action-btn:hover {
             transform: translateY(-2px);
             filter: brightness(1.15);
         }
 
-        .teams-scroll-list {
-            max-height: 28vh;
-            overflow-y: auto;
-            margin-top: 5px;
-            padding-right: 4px;
+        /* Scrollbar Design */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
         }
 
-        .team-card {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .team-info h4 {
-            font-size: 13px;
-            color: #38bdf8;
-            margin-bottom: 3px;
-            font-weight: 700;
-        }
-
-        .team-info p {
-            font-size: 11px;
-            color: #cbd5e1;
-            line-height: 1.4;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 5px;
-        }
-
-        .edit-btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            padding: 4px 8px;
-            font-size: 10px;
-            border-radius: 6px;
-            width: auto;
-            box-shadow: none;
-        }
-
-        .delete-btn {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            padding: 4px 8px;
-            font-size: 10px;
-            border-radius: 6px;
-            width: auto;
-            box-shadow: none;
-        }
-
-        .back-link {
-            text-align: center;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
-
-        .back-link a {
-            color: #94a3b8;
-            font-size: 11px;
-            text-decoration: none;
-        }
-        .back-link a:hover {
-            color: #38bdf8;
+        .remove-icon {
+            color: #f87171;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="top-section">
-            <div class="title-header">
-                <h2>🛡️ Create & Manage Teams</h2>
-                <div class="count-badge" id="teamCount">Teams: 0</div>
-            </div>
-            
-            <div class="input-group">
-                <input type="text" id="teamNameInput" placeholder="Enter team name...">
-                <p style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Select available players from Cloud:</p>
-                
-                <div class="player-select-box" id="playerSelectionContainer">
-                    <!-- Dynamic Checkboxes -->
-                </div>
-
-                <button id="saveTeamBtn" onclick="saveTeam()">Save Team</button>
-            </div>
-        </div>
-
-        <div class="teams-scroll-list" id="savedTeamsContainer">
-            <!-- Dynamic Saved Teams Cards -->
-        </div>
-
+    <!-- Top Header -->
+    <div class="main-header">
+        <h2>🛡️ Pro Team Selector & Drag-Drop Builder</h2>
         <div class="back-link">
             <a href="index.html">🏠 Back to Home</a>
         </div>
     </div>
 
+    <!-- Main Workspace (3 Columns) -->
+    <div class="workspace">
+        
+        <!-- Left Panel: Available Players from Cloud -->
+        <div class="panel">
+            <h3>👥 Available Players <span id="poolCount" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Drag players from here to any team:</p>
+            <div class="player-pool" id="playerPool" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToPool(event)">
+                <!-- Dynamic Cloud Players -->
+            </div>
+        </div>
+
+        <!-- Center Panel: Team 1 Builder -->
+        <div class="panel">
+            <div class="team-config-group">
+                <input type="text" id="team1Name" placeholder="Enter Team 1 Name..." value="Team Alpha">
+            </div>
+            <h3>🛡️ Team 1 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')">
+                <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
+            </div>
+            <button class="action-btn" onclick="saveTeam('team1')">Save Team 1 to Cloud</button>
+        </div>
+
+        <!-- Right Panel: Team 2 Builder -->
+        <div class="panel">
+            <div class="team-config-group">
+                <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
+            </div>
+            <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
+                <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
+            </div>
+            <button class="action-btn" style="background: linear-gradient(135deg, #ec4899, #be185d);" onclick="saveTeam('team2')">Save Team 2 to Cloud</button>
+        </div>
+
+    </div>
+
     <script>
-        // 🛠️ Firebase કન્ફિગરેશન (તમારા પ્રોજેક્ટ મુજબ)
+        // 🛠️ Firebase કન્ફિગરેશન
         const firebaseConfig = {
             apiKey: "AIzaSyAlZjpevvcgMYmxw3qrLg2wSPyE...",
             authDomain: "vskcricket.firebaseapp.com",
@@ -261,9 +266,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let editingKey = null; // ફાયરબેઝ ટીમની યુનિક કી ટ્રેક કરવા માટે
         let cloudPlayers = [];
-        let savedTeams = [];
+        let team1Players = [];
+        let team2Players = [];
 
         // 1. Firebase માંથી રિયલ-ટાઇમ પ્લેયર્સ લોડ કરો
         db.ref('players').on('value', (snapshot) => {
@@ -271,151 +276,163 @@
             cloudPlayers = [];
             if (data) {
                 Object.keys(data).forEach(key => {
-                    cloudPlayers.push(data[key].name);
+                    let playerName = data[key].name;
+                    // જો પ્લેયર પહેલેથી ટીમ 1 કે ટીમ 2 માં ન હોય તો જ પૂલમાં રાખવા
+                    if (!team1Players.includes(playerName) && !team2Players.includes(playerName)) {
+                        cloudPlayers.push(playerName);
+                    }
                 });
             }
-            loadPlayersForTeam();
+            renderUI();
         });
 
-        // 2. Firebase માંથી સેવ થયેલી ટીમ્સ લોડ કરો
-        db.ref('teams').on('value', (snapshot) => {
-            const data = snapshot.val();
-            savedTeams = [];
-            const teamsContainer = document.getElementById('savedTeamsContainer');
-            const teamCountBadge = document.getElementById('teamCount');
-            
-            teamsContainer.innerHTML = '';
+        // 2. UI રેન્ડર કરવા માટેનું ફંક્શન
+        function renderUI() {
+            const poolContainer = document.getElementById('playerPool');
+            const team1Container = document.getElementById('team1DropZone');
+            const team2Container = document.getElementById('team2DropZone');
 
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    savedTeams.push({ key: key, ...data[key] });
-                });
-            }
-
-            teamCountBadge.innerText = `Teams: ${savedTeams.length}`;
-
-            if (savedTeams.length === 0) {
-                teamsContainer.innerHTML = `<p style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 10px;">હજુ સુધી કોઈ ટીમ બનાવી નથી.</p>`;
-                return;
-            }
-
-            savedTeams.forEach((team) => {
-                let playersListStr = team.players ? team.players.join(', ') : '';
-                teamsContainer.innerHTML += `
-                    <div class="team-card">
-                        <div class="team-info" style="flex: 1; padding-right: 10px;">
-                            <h4>${team.name}</h4>
-                            <p><strong>Players (${team.players ? team.players.length : 0}):</strong> ${playersListStr}</p>
-                        </div>
-                        <div class="action-btns">
-                            <button class="edit-btn" onclick="editTeam('${team.key}')">Edit</button>
-                            <button class="delete-btn" onclick="deleteTeam('${team.key}')">Delete</button>
-                        </div>
-                    </div>
-                `;
-            });
-            loadPlayersForTeam();
-        });
-
-        // 3. પ્લેયર સિલેક્શન ચેકબોક્સ બનાવવા (કોલમ ફોર્મેટમાં)
-        function loadPlayersForTeam(currentTeamPlayers = []) {
-            const container = document.getElementById('playerSelectionContainer');
-            container.innerHTML = '';
-
+            // પ્લેયર પૂલ અપડેટ કરો
+            poolContainer.innerHTML = '';
             if (cloudPlayers.length === 0) {
-                container.style.display = 'block'; // જો મેસેજ હોય તો તેને ફુલ વિડથ રાખવા
-                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center; grid-column: 1 / -1;">કોઈ પ્લેયર ક્લાઉડ પર મળ્યા નથી! પહેલા Manage Players માંથી એડ કરો.</p>`;
-                return;
+                poolContainer.innerHTML = `<p style="color: #f87171; font-size: 11px; text-align: center; margin: auto;">કોઈ ઉપલબ્ધ ખેલાડી બાકી નથી!</p>`;
             } else {
-                container.style.display = 'grid';
+                cloudPlayers.forEach(player => {
+                    poolContainer.innerHTML += createPlayerCard(player, 'pool');
+                });
+            }
+            document.getElementById('poolCount').innerText = cloudPlayers.length;
+
+            // ટીમ ૧ અપડેટ કરો
+            team1Container.innerHTML = '';
+            if (team1Players.length === 0) {
+                team1Container.innerHTML = `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>`;
+            } else {
+                team1Players.forEach(player => {
+                    team1Container.innerHTML += createPlayerCard(player, 'team1');
+                });
+            }
+            document.getElementById('team1Count').innerText = team1Players.length;
+
+            // ટીમ ૨ અપડેટ કરો
+            team2Container.innerHTML = '';
+            if (team2Players.length === 0) {
+                team2Container.innerHTML = `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>`;
+            } else {
+                team2Players.forEach(player => {
+                    team2Container.innerHTML += createPlayerCard(player, 'team2');
+                });
+            }
+            document.getElementById('team2Count').innerText = team2Players.length;
+        }
+
+        // પ્લેયર કાર્ડ એચટીએમએલ બનાવવું (ડ્રેગેબલ સાથે)
+        function createPlayerCard(playerName, origin) {
+            return `
+                <div class="player-card" draggable="true" ondragstart="drag(event)" data-player="${playerName}" data-origin="${origin}">
+                    <span>🏏 ${playerName}</span>
+                    ${origin !== 'pool' ? `<span class="remove-icon" onclick="removeFromTeam('${playerName}', '${origin}')">&times;</span>` : ''}
+                </div>
+            `;
+        }
+
+        // --- Drag and Drop Events ---
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function removeDropStyle(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text/plain", ev.target.dataset.player);
+            ev.dataTransfer.setData("origin", ev.target.dataset.origin);
+        }
+
+        function dropToTeam(ev, targetTeam) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            
+            const playerName = ev.dataTransfer.getData("text/plain");
+            const origin = ev.dataTransfer.getData("origin");
+
+            if (!playerName) return;
+
+            // જૂની જગ્યાએથી ખેલાડી હટાવો
+            removePlayerFromList(playerName, origin);
+
+            // નવી ટીમમાં ઉમેરો
+            if (targetTeam === 'team1' && !team1Players.includes(playerName)) {
+                team1Players.push(playerName);
+            } else if (targetTeam === 'team2' && !team2Players.includes(playerName)) {
+                team2Players.push(playerName);
             }
 
-            // અન્ય ટીમમાં વપરાયેલા ખેલાડીઓ શોધો
-            let assignedPlayers = [];
-            savedTeams.forEach((t) => {
-                if (t.key !== editingKey && t.players) {
-                    assignedPlayers.push(...t.players);
-                }
-            });
+            renderUI();
+        }
 
-            cloudPlayers.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+        function dropToPool(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
 
-            let availableCount = 0;
-            cloudPlayers.forEach((player) => {
-                if (!assignedPlayers.includes(player) || currentTeamPlayers.includes(player)) {
-                    let isChecked = currentTeamPlayers.includes(player) ? 'checked' : '';
-                    container.innerHTML += `
-                        <label style="display: flex; align-items: center; font-size: 11px; color: #f1f5f9; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <input type="checkbox" name="selectedTeamPlayers" value="${player}" ${isChecked} style="margin-right: 6px; flex-shrink: 0;"> 
-                            <span style="overflow: hidden; text-overflow: ellipsis;" title="${player}">${player}</span>
-                        </label>
-                    `;
-                    availableCount++;
-                }
-            });
+            const playerName = ev.dataTransfer.getData("text/plain");
+            const origin = ev.dataTransfer.getData("origin");
 
-            if (availableCount === 0) {
-                container.style.display = 'block';
-                container.innerHTML = `<p style="font-size: 11px; color: #f87171; text-align: center;">બધા જ ખેલાડીઓ ટીમમાં વહેંચાઈ ગયા છે!</p>`;
+            if (!playerName || origin === 'pool') return;
+
+            removePlayerFromList(playerName, origin);
+            if (!cloudPlayers.includes(playerName)) {
+                cloudPlayers.push(playerName);
+            }
+
+            renderUI();
+        }
+
+        function removePlayerFromList(playerName, origin) {
+            if (origin === 'pool') {
+                cloudPlayers = cloudPlayers.filter(p => p !== playerName);
+            } else if (origin === 'team1') {
+                team1Players = team1Players.filter(p => p !== playerName);
+            } else if (origin === 'team2') {
+                team2Players = team2Players.filter(p => p !== playerName);
             }
         }
 
-        // 4. ટીમ Firebase માં સેવ અથવા અપડેટ કરવી
-        function saveTeam() {
-            const teamNameInput = document.getElementById('teamNameInput');
-            const teamName = teamNameInput.value.trim();
-            
+        function removeFromTeam(playerName, origin) {
+            removePlayerFromList(playerName, origin);
+            if (!cloudPlayers.includes(playerName)) {
+                cloudPlayers.push(playerName);
+            }
+            renderUI();
+        }
+
+        // 3. ટીમ ફાયરબેઝમાં સેવ કરવી
+        function saveTeam(teamKeyId) {
+            let teamNameInput = document.getElementById(teamKeyId === 'team1' ? 'team1Name' : 'team2Name');
+            let teamName = teamNameInput.value.trim();
+            let playersList = teamKeyId === 'team1' ? team1Players : team2Players;
+
             if (teamName === '') {
                 alert('કૃપા કરીને ટીમનું નામ દાખલ કરો!');
                 return;
             }
 
-            const checkboxes = document.querySelectorAll('input[name="selectedTeamPlayers"]:checked');
-            let selectedPlayers = [];
-            checkboxes.forEach((cb) => {
-                selectedPlayers.push(cb.value);
-            });
-
-            if (selectedPlayers.length === 0) {
-                alert('કૃપા કરીને ટીમ માટે ઓછામાં ઓછો એક ખેલાડી સિલેક્ટ કરો!');
+            if (playersList.length === 0) {
+                alert('ટીમમાં ઓછામાં ઓછો એક ખેલાડી હોવો જરૂરી છે!');
                 return;
             }
 
-            if (editingKey === null) {
-                // Firebase માં નવી ટીમ પુશ કરો
-                db.ref('teams').push({ name: teamName, players: selectedPlayers });
-            } else {
-                // Firebase માં હાલની ટીમ અપડેટ કરો
-                db.ref('teams/' + editingKey).set({ name: teamName, players: selectedPlayers });
-                editingKey = null;
-                document.getElementById('saveTeamBtn').innerText = 'Save Team';
-            }
-            
-            teamNameInput.value = '';
-            loadPlayersForTeam();
-        }
-
-        // 5. ટીમ એડિટ કરવા માટે
-        function editTeam(key) {
-            let teamToEdit = savedTeams.find(t => t.key === key);
-            if (teamToEdit) {
-                document.getElementById('teamNameInput').value = teamToEdit.name;
-                editingKey = key;
-                document.getElementById('saveTeamBtn').innerText = 'Update Team';
-                loadPlayersForTeam(teamToEdit.players);
-            }
-        }
-
-        // 6. ટીમ ડિલીટ કરવા માટે
-        function deleteTeam(key) {
-            if (confirm('શું તમે ખરેખર આ ટીમ ડિલીટ કરવા માંગો છો?')) {
-                db.ref('teams/' + key).remove();
-                if (editingKey === key) {
-                    editingKey = null;
-                    document.getElementById('teamNameInput.value') = '';
-                    document.getElementById('saveTeamBtn').innerText = 'Save Team';
-                }
-            }
+            // Firebase માં પુશ કરો
+            db.ref('teams').push({
+                name: teamName,
+                players: playersList
+            }).then(() => {
+                alert(`${teamName} સફળતાપૂર્વક સેવ થઈ ગઈ છે!`);
+            }).catch((error) => {
+                alert('એરર: ' + error.message);
+            });
         }
     </script>
 </body>
