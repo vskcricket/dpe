@@ -239,7 +239,8 @@
             <div class="team-config-group">
                 <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
             </div>
-            <h3>⚔️ Team 2 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
+            <!-- સુધારો અહીં કર્યો છે: team1Count ની જગ્યાએ team2Count કર્યું છે -->
+            <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 8px; border-radius: 10px;">0</span></h3>
             <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
                 <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
             </div>
@@ -271,7 +272,7 @@
         let team1Players = [];
         let team2Players = [];
 
-        // 1. Firebase માંથી પ્લેયર્સ લોડ કરવા
+        // 1. Firebase માંથી પ્લેયર્સ લોડ કરવા[cite: 4]
         db.ref('players').on('value', (snapshot) => {
             const data = snapshot.val();
             cloudPlayers = [];
@@ -310,6 +311,7 @@
                     team1Container.innerHTML += createPlayerCard(player, 'team1');
                 });
             }
+            document.getElementById('team1Count').innerText = team1Players.length;
 
             team2Container.innerHTML = '';
             if (team2Players.length === 0) {
@@ -319,6 +321,7 @@
                     team2Container.innerHTML += createPlayerCard(player, 'team2');
                 });
             }
+            document.getElementById('team2Count').innerText = team2Players.length;
         }
 
         function createPlayerCard(playerName, origin) {
@@ -415,7 +418,7 @@
                 return;
             }
 
-            // Firebase માં બંને ટીમ એકસાથે સેવ કરો[cite: 1]
+            // Firebase માં બંને ટીમ એકસાથે સેવ કરો[cite: 4]
             const teamsRef = db.ref('teams');
             
             Promise.all([
@@ -432,17 +435,6 @@
         }
 
         // 4. Telegram API દ્વારા બંને ટીમનો એક જ મેસેજ મોકલવાનું ફંક્શન
-        function sendToTelegram(teamName, players) {
-            let message = `🚨 *NEW CRICKET TEAM SAVED* 🚨\n\n`;
-            message += `🛡️ *Team Name:* ${teamName}\n`;
-            message += `👥 *Total Players:* ${players.length}\n\n`;
-            message += `📜 *Players List:*\n`;
-            players.forEach((player, index) => {
-                message += `${index + 1}. ${player}\n`;
-            });
-            return message;
-        }
-
         function sendBothTeamsToTelegram(t1Name, t1Players, t2Name, t2Players) {
             if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
                 alert('ટીમ Firebase માં સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
