@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             padding: 12px;
-            overflow-y: auto; /* આખું પેજ સ્ક્રોલ થશે */
+            overflow-y: auto;
         }
 
         @keyframes gradientBG {
@@ -104,7 +104,6 @@
             align-items: center;
         }
 
-        /* હવે અહીંથી ઇન્ડિવિડ્યુઅલ સ્ક્રોલ કાઢી નાખ્યું છે જેથી પ્લેયર્સ પ્રમાણે બોક્સ મોટું થશે */
         .drop-zone, .player-pool {
             background: rgba(10, 15, 30, 0.6);
             border: 2px dashed rgba(56, 189, 248, 0.3);
@@ -138,6 +137,8 @@
 
         .team-config-group {
             margin-bottom: 8px;
+            display: flex;
+            gap: 6px;
         }
 
         input[type="text"] {
@@ -155,6 +156,23 @@
         input[type="text"]:focus {
             border-color: #38bdf8;
             box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+        }
+
+        .add-player-btn {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            height: 35px;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+        .add-player-btn:hover {
+            filter: brightness(1.1);
         }
 
         .action-btn {
@@ -196,6 +214,68 @@
             font-weight: bold;
             padding: 0 5px;
         }
+
+        /* --- Popup Modal CSS --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1e1b4b;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            width: 90%;
+            max-width: 350px;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+        .modal-header h4 {
+            color: #38bdf8;
+            font-size: 14px;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            color: #f87171;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-player-list {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .modal-player-item {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.2s;
+        }
+        .modal-player-item:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
     </style>
 </head>
 <body>
@@ -218,7 +298,8 @@
         <!-- Center Panel: Team 1 Builder -->
         <div class="panel">
             <div class="team-config-group">
-                <input type="text" id="team1Name" placeholder="Enter Team 1 Name..." value="Team Alpha">
+                <input type="text" id="team1Name" placeholder="Team 1 Name..." value="Team Alpha">
+                <button class="add-player-btn" onclick="openPlayerModal('team1')">➕ Add</button>
             </div>
             <h3>🛡️ Team 1 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
             <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')">
@@ -229,7 +310,8 @@
         <!-- Right Panel: Team 2 Builder -->
         <div class="panel">
             <div class="team-config-group">
-                <input type="text" id="team2Name" placeholder="Enter Team 2 Name..." value="Team Beta">
+                <input type="text" id="team2Name" placeholder="Team 2 Name..." value="Team Beta">
+                <button class="add-player-btn" onclick="openPlayerModal('team2')">➕ Add</button>
             </div>
             <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
             <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
@@ -243,8 +325,20 @@
         <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">🚀 Save Both Teams & Send Telegram</button>
     </div>
 
+    <!-- Popup Modal for Player Selection -->
+    <div class="modal-overlay" id="playerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="modalTitle">Select Player</h4>
+                <button class="close-modal" onclick="closePlayerModal()">&times;</button>
+            </div>
+            <div class="modal-player-list" id="modalPlayerList">
+                <!-- Dynamic Player List will load here -->
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 🛠️ Firebase કન્ફિગરેશન
         const firebaseConfig = {
             apiKey: "AIzaSyAlZjpevvcgMYmxw3qrLg2wSPyE...",
             authDomain: "vskcricket.firebaseapp.com",
@@ -255,15 +349,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 🤖 Telegram Bot Credentials
         const TELEGRAM_BOT_TOKEN = "8681899166:AAGylxqHZGXS0KrXjmbRI_ETtnSO0i7sQzE"; 
-        const TELEGRAM_CHAT_ID = "680623524,586015094";
+        const TELEGRAM_CHAT_ID = "680623524";"586015094";
 
         let allMasterPlayers = []; 
         let team1Players = [];
         let team2Players = [];
+        let activeTargetTeam = ''; // Tracks which team is currently opening the popup
 
-        // 1. Firebase માંથી પ્લેયર્સ અને સેવ થયેલી ટીમો લોડ કરવી
         function loadDataFromFirebase() {
             db.ref('players').once('value', (playerSnapshot) => {
                 const playerData = playerSnapshot.val();
@@ -311,7 +404,6 @@
 
         loadDataFromFirebase();
 
-        // 2. UI રેન્ડર ફંક્શન
         function renderUI() {
             const poolContainer = document.getElementById('playerPool');
             const team1Container = document.getElementById('team1DropZone');
@@ -357,6 +449,48 @@
                     ${origin !== 'pool' ? `<span class="remove-icon" onclick="removeFromTeam('${playerName}', '${origin}')">&times;</span>` : ''}
                 </div>
             `;
+        }
+
+        // --- Popup Modal Logic ---
+        function openPlayerModal(teamKey) {
+            activeTargetTeam = teamKey;
+            const modal = document.getElementById('playerModal');
+            const listContainer = document.getElementById('modalPlayerList');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            let tName = teamKey === 'team1' ? document.getElementById('team1Name').value : document.getElementById('team2Name').value;
+            modalTitle.innerText = `Add Player to ${tName}`;
+
+            let availablePlayers = allMasterPlayers.filter(p => !team1Players.includes(p) && !team2Players.includes(p));
+
+            listContainer.innerHTML = '';
+            if (availablePlayers.length === 0) {
+                listContainer.innerHTML = `<p style="color: #f87171; font-size: 12px; text-align: center; padding: 10px;">કોઈ ઉપલબ્ધ ખેલાડી બાકી નથી!</p>`;
+            } else {
+                availablePlayers.forEach(player => {
+                    listContainer.innerHTML += `
+                        <div class="modal-player-item" onclick="selectPlayerForTeam('${player}')">
+                            🏏 ${player}
+                        </div>
+                    `;
+                });
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closePlayerModal() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+
+        function selectPlayerForTeam(playerName) {
+            if (activeTargetTeam === 'team1' && !team1Players.includes(playerName)) {
+                team1Players.push(playerName);
+            } else if (activeTargetTeam === 'team2' && !team2Players.includes(playerName)) {
+                team2Players.push(playerName);
+            }
+            renderUI();
+            closePlayerModal();
         }
 
         // --- Drag and Drop Logic ---
@@ -420,7 +554,7 @@
             renderUI();
         }
 
-        // 3. એક જ ક્લિકમાં બંને ટીમ સેવ કરવી, ડેટાબેઝમાં કાયમી રાખવી અને ટેલિગ્રામ પર મોકલવી
+        // Save & Telegram
         function saveBothTeamsAndSendTelegram() {
             let team1Name = document.getElementById('team1Name').value.trim();
             let team2Name = document.getElementById('team2Name').value.trim();
@@ -454,7 +588,6 @@
             });
         }
 
-        // 4. Telegram API દ્વારા બંને ટીમનો એક જ મેસેજ મોકલવાનું ફંક્શન
         function sendBothTeamsToTelegram(t1Name, t1Players, t2Name, t2Players) {
             if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
                 alert('ટીમ પર્મનન્ટ સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
