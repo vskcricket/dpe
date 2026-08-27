@@ -8,8 +8,7 @@
     <!-- Firebase Realtime Database SDK (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-    <!-- Html2Canvas Library to convert HTML to Image -->
+    <!-- html2canvas for Image Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -118,6 +117,11 @@
             min-height: 120px;
         }
 
+        .drop-zone.drag-over {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+        }
+
         .player-card {
             background: rgba(30, 41, 59, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -151,6 +155,11 @@
             margin-bottom: 4px;
         }
 
+        input[type="text"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+        }
+
         .add-player-btn {
             background: linear-gradient(135deg, #38bdf8, #0284c7);
             color: white;
@@ -162,6 +171,10 @@
             cursor: pointer;
             height: 35px;
             white-space: nowrap;
+            transition: 0.2s;
+        }
+        .add-player-btn:hover {
+            filter: brightness(1.1);
         }
 
         .action-btn {
@@ -176,12 +189,6 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
             transition: all 0.2s ease;
-            margin-bottom: 10px;
-        }
-
-        .action-btn.whatsapp-img-btn {
-            background: linear-gradient(135deg, #25D366, #128C7E);
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
         }
 
         .action-btn:hover {
@@ -197,6 +204,14 @@
             gap: 10px;
         }
 
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 4px;
+        }
+
         .remove-icon {
             color: #f87171;
             cursor: pointer;
@@ -205,63 +220,7 @@
             padding: 0 5px;
         }
 
-        /* --- Shareable Poster Design Box (Hidden on normal screen, rendered for image) --- */
-        #posterContainer {
-            position: fixed;
-            left: -9999px;
-            top: 0;
-            width: 500px;
-            background: linear-gradient(135deg, #0f172a, #1e1b4b, #311042);
-            color: #ffffff;
-            padding: 25px;
-            border-radius: 16px;
-            font-family: 'Poppins', sans-serif;
-            border: 2px solid #38bdf8;
-        }
-        .poster-header {
-            text-align: center;
-            font-size: 20px;
-            font-weight: 800;
-            color: #38bdf8;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .poster-teams-grid {
-            display: flex;
-            gap: 15px;
-        }
-        .poster-team-box {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 10px;
-            padding: 12px;
-        }
-        .poster-team-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #f472b6;
-            margin-bottom: 8px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 5px;
-        }
-        .poster-player-name {
-            font-size: 12px;
-            padding: 4px 0;
-            border-bottom: 1px dashed rgba(255,255,255,0.05);
-        }
-        .poster-footer {
-            text-align: center;
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 8px;
-        }
-
-        /* Modal Popup */
+        /* --- Popup Modal CSS --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -316,6 +275,128 @@
             font-size: 12px;
             cursor: pointer;
             border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.2s;
+        }
+        .modal-player-item:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+
+        /* --- Professional Squad Poster Card (Hidden offscreen for html2canvas) --- */
+        #posterContainerWrapper {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+
+        .squad-poster {
+            width: 600px;
+            background: linear-gradient(135deg, #090d16, #1e1b4b, #0f172a);
+            color: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #38bdf8;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .squad-poster::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: rgba(56, 189, 248, 0.15);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .poster-header {
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .poster-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .poster-header p {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .poster-teams-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .poster-team-box {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.85);
+            border: 2px solid rgba(56, 189, 248, 0.4);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        .poster-team-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #38bdf8;
+            border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .poster-player-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .poster-player-item {
+            background: rgba(30, 41, 59, 0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f8fafc;
+            border-left: 3px solid #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .poster-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
         }
     </style>
 </head>
@@ -332,6 +413,7 @@
         <!-- Left Panel: Available Players -->
         <div class="panel">
             <h3>👥 Available Players <span id="poolCount" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Tap/Drag players to any team:</p>
             <div class="player-pool" id="playerPool" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToPool(event)"></div>
         </div>
 
@@ -342,7 +424,9 @@
                 <button class="add-player-btn" onclick="openPlayerModal('team1')">➕ Add</button>
             </div>
             <h3>🛡️ Team 1 Squad <span id="team1Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
-            <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')"></div>
+            <div class="drop-zone" id="team1DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team1')">
+                <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
+            </div>
         </div>
 
         <!-- Right Panel: Team 2 Builder -->
@@ -352,40 +436,51 @@
                 <button class="add-player-btn" onclick="openPlayerModal('team2')">➕ Add</button>
             </div>
             <h3>⚔️ Team 2 Squad <span id="team2Count" style="font-size: 11px; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 8px;">0</span></h3>
-            <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')"></div>
+            <div class="drop-zone" id="team2DropZone" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropToTeam(event, 'team2')">
+                <p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>
+            </div>
         </div>
     </div>
 
     <!-- Master Action Buttons -->
     <div class="footer-action">
-        <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">Save Both Teams</button>
-        <button class="action-btn whatsapp-img-btn" onclick="generateTeamImageAndShare()">📸 Generate Team Image</button>
+        <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">🚀 Save Teams & Send Telegram</button>
+        <button class="action-btn" style="background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);" onclick="generateAndShareWhatsAppImage()">📤 WhatsApp પર ટીમ ઈમેજ મોકલો</button>
     </div>
 
-    <!-- Hidden Poster Layout (Rendered to Image) -->
-    <div id="posterContainer">
-        <div class="poster-header">🔥 GULLY CRICKET SQUAD 🔥</div>
-        <div class="poster-teams-grid">
-            <div class="poster-team-box">
-                <div class="poster-team-title" id="posterT1Title">Team Alpha</div>
-                <div id="posterT1List"></div>
-            </div>
-            <div class="poster-team-box">
-                <div class="poster-team-title" id="posterT2Title">Team Beta</div>
-                <div id="posterT2List"></div>
-            </div>
-        </div>
-        <div class="poster-footer">⚡ Powered by Gully Cricket Scorer</div>
-    </div>
-
-    <!-- Popup Modal -->
+    <!-- Popup Modal for Player Selection -->
     <div class="modal-overlay" id="playerModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 id="modalTitle">Select Player</h4>
                 <button class="close-modal" onclick="closePlayerModal()">&times;</button>
             </div>
-            <div class="modal-player-list" id="modalPlayerList"></div>
+            <div class="modal-player-list" id="modalPlayerList">
+                <!-- Dynamic Player List will load here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Poster Template for Image Generation -->
+    <div id="posterContainerWrapper">
+        <div class="squad-poster" id="squadPosterElement">
+            <div class="poster-header">
+                <h1>🏏 Gully Cricket Match 🏏</h1>
+                <p>Official Team Squads Announcement</p>
+            </div>
+            <div class="poster-teams-grid">
+                <div class="poster-team-box">
+                    <div class="poster-team-title" id="posterTeam1Name">Team Alpha</div>
+                    <ul class="poster-player-list" id="posterTeam1List"></ul>
+                </div>
+                <div class="poster-team-box">
+                    <div class="poster-team-title" id="posterTeam2Name">Team Beta</div>
+                    <ul class="poster-player-list" id="posterTeam2List"></ul>
+                </div>
+            </div>
+            <div class="poster-footer">
+                Powered by Gully Cricket Scorer & Pro Match Visualizer
+            </div>
         </div>
     </div>
 
@@ -429,11 +524,29 @@
                             document.getElementById('team2Name').value = teamData.team2.name || "Team Beta";
                             team2Players = teamData.team2.players || [];
                         }
+                    } else {
+                        team1Players = [];
+                        team2Players = [];
                     }
                     renderUI();
                 });
             });
         }
+
+        db.ref('activeTeams').on('value', (snapshot) => {
+            const teamData = snapshot.val();
+            if (teamData) {
+                if (teamData.team1) {
+                    document.getElementById('team1Name').value = teamData.team1.name || "Team Alpha";
+                    team1Players = teamData.team1.players || [];
+                }
+                if (teamData.team2) {
+                    document.getElementById('team2Name').value = teamData.team2.name || "Team Beta";
+                    team2Players = teamData.team2.players || [];
+                }
+                renderUI();
+            }
+        });
 
         loadDataFromFirebase();
 
@@ -444,19 +557,34 @@
 
             let cloudPlayers = allMasterPlayers.filter(p => !team1Players.includes(p) && !team2Players.includes(p));
 
-            poolContainer.innerHTML = cloudPlayers.length === 0 ? 
-                `<p style="color: #f87171; font-size: 11px; text-align: center; margin: auto;">કોઈ ખેલાડી બાકી નથી!</p>` : 
-                cloudPlayers.map(p => createPlayerCard(p, 'pool')).join('');
+            poolContainer.innerHTML = '';
+            if (cloudPlayers.length === 0) {
+                poolContainer.innerHTML = `<p style="color: #f87171; font-size: 11px; text-align: center; margin: auto;">કોઈ ઉપલબ્ધ ખેલાડી બાકી નથી!</p>`;
+            } else {
+                cloudPlayers.forEach(player => {
+                    poolContainer.innerHTML += createPlayerCard(player, 'pool');
+                });
+            }
             document.getElementById('poolCount').innerText = cloudPlayers.length;
 
-            team1Container.innerHTML = team1Players.length === 0 ? 
-                `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>` : 
-                team1Players.map(p => createPlayerCard(p, 'team1')).join('');
+            team1Container.innerHTML = '';
+            if (team1Players.length === 0) {
+                team1Container.innerHTML = `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>`;
+            } else {
+                team1Players.forEach(player => {
+                    team1Container.innerHTML += createPlayerCard(player, 'team1');
+                });
+            }
             document.getElementById('team1Count').innerText = team1Players.length;
 
-            team2Container.innerHTML = team2Players.length === 0 ? 
-                `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>` : 
-                team2Players.map(p => createPlayerCard(p, 'team2')).join('');
+            team2Container.innerHTML = '';
+            if (team2Players.length === 0) {
+                team2Container.innerHTML = `<p style="color: #64748b; font-size: 11px; text-align: center; margin: auto;">Drop players here</p>`;
+            } else {
+                team2Players.forEach(player => {
+                    team2Container.innerHTML += createPlayerCard(player, 'team2');
+                });
+            }
             document.getElementById('team2Count').innerText = team2Players.length;
         }
 
@@ -469,123 +597,252 @@
             `;
         }
 
+        // --- Popup Modal Logic ---
         function openPlayerModal(teamKey) {
             activeTargetTeam = teamKey;
             const modal = document.getElementById('playerModal');
             const listContainer = document.getElementById('modalPlayerList');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            let tName = teamKey === 'team1' ? document.getElementById('team1Name').value : document.getElementById('team2Name').value;
+            modalTitle.innerText = `Add Player to ${tName}`;
+
             let availablePlayers = allMasterPlayers.filter(p => !team1Players.includes(p) && !team2Players.includes(p));
 
-            listContainer.innerHTML = availablePlayers.length === 0 ? 
-                `<p style="color: #f87171; font-size: 12px; text-align: center;">કોઈ ઉપલબ્ધ ખેલાડી નથી!</p>` :
-                availablePlayers.map(p => `<div class="modal-player-item" onclick="selectPlayerForTeam('${p}')">🏏 ${p}</div>`).join('');
+            listContainer.innerHTML = '';
+            if (availablePlayers.length === 0) {
+                listContainer.innerHTML = `<p style="color: #f87171; font-size: 12px; text-align: center; padding: 10px;">કોઈ ઉપલબ્ધ ખેલાડી બાકી નથી!</p>`;
+            } else {
+                availablePlayers.forEach(player => {
+                    listContainer.innerHTML += `
+                        <div class="modal-player-item" onclick="selectPlayerForTeam('${player}')">
+                            🏏 ${player}
+                        </div>
+                    `;
+                });
+            }
 
             modal.style.display = 'flex';
         }
 
-        function closePlayerModal() { document.getElementById('playerModal').style.display = 'none'; }
+        function closePlayerModal() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+
         function selectPlayerForTeam(playerName) {
-            if (activeTargetTeam === 'team1') team1Players.push(playerName);
-            else if (activeTargetTeam === 'team2') team2Players.push(playerName);
+            if (activeTargetTeam === 'team1' && !team1Players.includes(playerName)) {
+                team1Players.push(playerName);
+            } else if (activeTargetTeam === 'team2' && !team2Players.includes(playerName)) {
+                team2Players.push(playerName);
+            }
             renderUI();
             closePlayerModal();
         }
 
-        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
-        function removeDropStyle(ev) { ev.currentTarget.classList.remove('drag-over'); }
+        // --- Drag and Drop Logic ---
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function removeDropStyle(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+
         function drag(ev) {
             ev.dataTransfer.setData("text/plain", ev.target.dataset.player);
             ev.dataTransfer.setData("origin", ev.target.dataset.origin);
         }
+
         function dropToTeam(ev, targetTeam) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
-            let playerName = ev.dataTransfer.getData("text/plain");
-            let origin = ev.dataTransfer.getData("origin");
+            
+            const playerName = ev.dataTransfer.getData("text/plain");
+            const origin = ev.dataTransfer.getData("origin");
+
             if (!playerName) return;
+
             removePlayerFromList(playerName, origin);
-            if (targetTeam === 'team1') team1Players.push(playerName);
-            else team2Players.push(playerName);
+
+            if (targetTeam === 'team1' && !team1Players.includes(playerName)) {
+                team1Players.push(playerName);
+            } else if (targetTeam === 'team2' && !team2Players.includes(playerName)) {
+                team2Players.push(playerName);
+            }
+
             renderUI();
         }
+
         function dropToPool(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
-            let playerName = ev.dataTransfer.getData("text/plain");
-            let origin = ev.dataTransfer.getData("origin");
+
+            const playerName = ev.dataTransfer.getData("text/plain");
+            const origin = ev.dataTransfer.getData("origin");
+
             if (!playerName || origin === 'pool') return;
+
             removePlayerFromList(playerName, origin);
             renderUI();
         }
+
         function removePlayerFromList(playerName, origin) {
-            if (origin === 'team1') team1Players = team1Players.filter(p => p !== playerName);
-            else if (origin === 'team2') team2Players = team2Players.filter(p => p !== playerName);
+            if (origin === 'team1') {
+                team1Players = team1Players.filter(p => p !== playerName);
+            } else if (origin === 'team2') {
+                team2Players = team2Players.filter(p => p !== playerName);
+            }
         }
-        function removeFromTeam(playerName, origin) { removePlayerFromList(playerName, origin); renderUI(); }
 
+        function removeFromTeam(playerName, origin) {
+            removePlayerFromList(playerName, origin);
+            renderUI();
+        }
+
+        // Save & Telegram
         function saveBothTeamsAndSendTelegram() {
-            let t1Name = document.getElementById('team1Name').value.trim();
-            let t2Name = document.getElementById('team2Name').value.trim();
-            if (!t1Name || !t2Name || team1Players.length === 0 || team2Players.length === 0) {
-                alert('કૃપા કરીને નામ અને ખેલાડીઓ ઉમેરો!');
+            let team1Name = document.getElementById('team1Name').value.trim();
+            let team2Name = document.getElementById('team2Name').value.trim();
+
+            if (team1Name === '' || team2Name === '') {
+                alert('કૃપા કરીને બંને ટીમનું નામ દાખલ કરો!');
                 return;
             }
-            db.ref('activeTeams').set({
-                team1: { name: t1Name, players: team1Players },
-                team2: { name: t2Name, players: team2Players }
-            }).then(() => alert('ટીમ સેવ થઈ ગઈ!'));
+
+            if (team1Players.length === 0 || team2Players.length === 0) {
+                alert('બંને ટીમમાં ઓછામાં ઓછો એક-એક ખેલાડી હોવો જરૂરી છે!');
+                return;
+            }
+
+            const activeTeamsRef = db.ref('activeTeams');
+            const historyTeamsRef = db.ref('teams');
+
+            Promise.all([
+                activeTeamsRef.set({
+                    team1: { name: team1Name, players: team1Players },
+                    team2: { name: team2Name, players: team2Players }
+                }),
+                historyTeamsRef.push({ name: team1Name, players: team1Players }),
+                historyTeamsRef.push({ name: team2Name, players: team2Players })
+            ])
+            .then(() => {
+                sendBothTeamsToTelegram(team1Name, team1Players, team2Name, team2Players);
+            })
+            .catch((error) => {
+                alert('એરર: ' + error.message);
+            });
         }
 
-        // --- Generate Image & Share Function ---
-        function generateTeamImageAndShare() {
-            let t1Name = document.getElementById('team1Name').value.trim();
-            let t2Name = document.getElementById('team2Name').value.trim();
-
-            if (!t1Name || !t2Name || team1Players.length === 0 || team2Players.length === 0) {
-                alert('કૃપા કરીને બંને ટીમના નામ અને ખેલાડીઓ ઉમેરો!');
+        function sendBothTeamsToTelegram(t1Name, t1Players, t2Name, t2Players) {
+            if (TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN" || TELEGRAM_CHAT_ID === "YOUR_CHAT_ID") {
+                alert('ટીમ પર્મનન્ટ સેવ થઈ ગઈ છે, પણ Telegram Bot Token અથવા Chat ID સેટ કરેલ નથી!');
                 return;
             }
 
-            // Fill hidden poster data
-            document.getElementById('posterT1Title').innerText = t1Name;
-            document.getElementById('posterT2Title').innerText = t2Name;
-
-            document.getElementById('posterT1List').innerHTML = team1Players.map((p, i) => 
-                `<div class="poster-player-name">${i + 1}. 🏏 ${p}</div>`).join('');
+            let finalMessage = `🏏 *CRICKET MATCH SQUADS* 🏏\n\n`;
+            finalMessage += `----------------------------\n`;
+            finalMessage += `🛡️ *${t1Name}* (${t1Players.length} Players)\n`;
+            t1Players.forEach((p, i) => finalMessage += `${i + 1}. ${p}\n`);
             
-            document.getElementById('posterT2List').innerHTML = team2Players.map((p, i) => 
-                `<div class="poster-player-name">${i + 1}. 🏏 ${p}</div>`).join('');
+            finalMessage += `\n----------------------------\n`;
+            finalMessage += `⚔️ *${t2Name}* (${t2Players.length} Players)\n`;
+            t2Players.forEach((p, i) => finalMessage += `${i + 1}. ${p}\n`);
+            finalMessage += `----------------------------`;
 
-            let posterElement = document.getElementById('posterContainer');
+            let url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
-            // Convert HTML to Image using Html2Canvas
-            html2canvas(posterElement, { scale: 2, backgroundColor: null }).then(canvas => {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID.split(',')[0].trim(),
+                    text: finalMessage,
+                    parse_mode: 'Markdown'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('ટીમ સફળતાપૂર્વક કાયમી સેવ થઈ ગઈ અને ટેલિગ્રામ પર મોકલાઈ ગઈ!');
+                } else {
+                    alert('ટીમ સેવ થઈ ગઈ, પણ Telegram પર મેસેજ મોકલવામાં ભૂલ છે: ' + data.description);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Telegram સાથે કનેક્ટ થવામાં સમસ્યા આવી.');
+            });
+        }
+
+        // --- WhatsApp Professional Image Generator using html2canvas ---
+        function generateAndShareWhatsAppImage() {
+            let team1Name = document.getElementById('team1Name').value.trim();
+            let team2Name = document.getElementById('team2Name').value.trim();
+
+            if (team1Name === '' || team2Name === '') {
+                alert('કૃપા કરીને બંને ટીમનું નામ દાખલ કરો!');
+                return;
+            }
+
+            if (team1Players.length === 0 || team2Players.length === 0) {
+                alert('બંને ટીમમાં ઓછામાં ઓછો એક-એક ખેલાડી હોવો જરૂરી છે!');
+                return;
+            }
+
+            // Populate hidden poster container elements
+            document.getElementById('posterTeam1Name').innerText = team1Name;
+            document.getElementById('posterTeam2Name').innerText = team2Name;
+
+            let t1ListEl = document.getElementById('posterTeam1List');
+            t1ListEl.innerHTML = '';
+            team1Players.forEach((p, i) => {
+                t1ListEl.innerHTML += `<li class="poster-player-item"><span>${i+1}.</span> ${p}</li>`;
+            });
+
+            let t2ListEl = document.getElementById('posterTeam2List');
+            t2ListEl.innerHTML = '';
+            team2Players.forEach((p, i) => {
+                t2ListEl.innerHTML += `<li class="poster-player-item"><span>${i+1}.</span> ${p}</li>`;
+            });
+
+            const posterElement = document.getElementById('squadPosterElement');
+            
+            html2canvas(posterElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null
+            }).then(canvas => {
                 canvas.toBlob(blob => {
-                    let file = new File([blob], "cricket-squads.png", { type: "image/png" });
-
-                    // Check if Web Share API is supported (Direct Image Sharing to WhatsApp)
+                    const file = new File([blob], "Cricket_Match_Squads.png", { type: "image/png" });
+                    
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         navigator.share({
-                            files: [file],
                             title: 'Cricket Match Squads',
-                            text: '🔥 Check out our match squads! 🔥'
-                        }).catch(error => console.log('Sharing failed', error));
+                            text: `🏏 *${team1Name}* vs *${team2Name}* Official Squads!`,
+                            files: [file]
+                        }).catch(error => {
+                            console.log('Share canceled or failed:', error);
+                        });
                     } else {
-                        // Fallback: Download image if direct share is not supported by browser
-                        let link = document.createElement('a');
-                        link.download = 'cricket-squads.png';
+                        const link = document.createElement('a');
+                        link.download = `${team1Name}_vs_${team2Name}_Squads.png`;
                         link.href = canvas.toDataURL('image/png');
                         link.click();
-                        alert('ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે તમે તેને વ્હોટ્સએપ પર મોકલી શકો છો.');
+
+                        let whatsappText = encodeURIComponent(`🏏 *CRICKET MATCH SQUADS* 🏏\n\n🛡️ *${team1Name}* vs ⚔️ *${team2Name}*` + `\n\nટીમનું પ્રોફેશનલ પોસ્ટર ડાઉનલોડ થઈ ગયું છે!`);
+                        window.open(`https://api.whatsapp.com/send?text=${whatsappText}`, '_blank');
+                        
+                        alert('પ્રોફેશનલ ટીમ ઈમેજ ડાઉનલોડ થઈ ગઈ છે! હવે તમે તેને WhatsApp પર શેર કરી શકો છો.');
                     }
                 }, 'image/png');
+            }).catch(err => {
+                console.error('Image generation error:', err);
+                alert('ઈમેજ જનરેટ કરવામાં સમસ્યા આવી.');
             });
         }
     </script>
 </body>
 </html>
-```[cite: 2]
-
-### આનાથી શું ફાયદો થશે?
-* વ્હોટ્સએપમાં ટેક્સ્ટ આડા-અવળા થવાની કે લાઇન તૂટવાની ઝંઝટ જ નહીં રહે.
-* જ્યારે તમે **"Generate Team Image & Share WhatsApp"** બટન દબાવશો, ત્યારે આખી ટીમનું લિસ્ટ એક આકર્ષક ડિઝાઈનવાળા **ફોટા (Poster)** માં ફેરવાઈ જશે[cite: 2].
-* મોબાઈલ તેને ડાયરેક્ટ વ્હોટ્સએપમાં શેર કરવા માટે પૂછશે અથવા ડાઉનલોડ કરી આપશે, જેથી એકદમ પ્રોફેશનલ દેખાવ મળશે!
