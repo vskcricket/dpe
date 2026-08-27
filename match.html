@@ -233,13 +233,12 @@
         let allTeams = [];
         let tempMatchData = {};
 
-        db.ref('teams').on('value', (snapshot) => {
+        db.ref('activeTeams').on('value', (snapshot) => {
             const data = snapshot.val();
             allTeams = [];
             if (data) {
-                Object.keys(data).forEach(key => {
-                    allTeams.push(data[key]);
-                });
+                if (data.team1) allTeams.push(data.team1);
+                if (data.team2) allTeams.push(data.team2);
             }
 
             let t1Select = document.getElementById('team1Select');

@@ -418,7 +418,7 @@
                     });
                 }
 
-                db.ref('teams').once('value', (teamSnapshot) => {
+                db.ref('activeTeams').once('value', (teamSnapshot) => {
                     const teamData = teamSnapshot.val();
                     if (teamData) {
                         if (teamData.team1) {
@@ -529,7 +529,7 @@
                 alert('કૃપા કરીને નામ અને ખેલાડીઓ ઉમેરો!');
                 return;
             }
-            db.ref('teams').set({
+            db.ref('activeTeams').set({
                 team1: { name: t1Name, players: team1Players },
                 team2: { name: t2Name, players: team2Players }
             }).then(() => alert('ટીમ સેવ થઈ ગઈ!'));
