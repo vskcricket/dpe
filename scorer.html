@@ -620,7 +620,15 @@
         document.getElementById('lbl-batting-team').innerText = `🏏 ${matchData.battingTeam || ''}`;
         
         let extraSummary = ` | Extras: ${matchData.extras?.total || 0}`;
-        let inningText = (matchData.inning === 1) ? `1st Inning${extraSummary}` : `2nd Inning (Target: ${matchData.target || 0})${extraSummary}`;
+        let inningText;
+        if (matchData.inning === 1) {
+            inningText = `1st Inning${extraSummary}`;
+        } else {
+            const targetRuns = Math.max(0, (matchData.target || 0) - (matchData.score || 0));
+            const totalBalls = (parseInt(matchData.totalOvers) || 0) * 6;
+            const ballsLeft = Math.max(0, totalBalls - (matchData.balls || 0));
+            inningText = `2nd Inning (Target: ${matchData.target || 0} | ${targetRuns} runs in ${ballsLeft} balls)`;
+        }
         document.getElementById('match-teams').innerText = `${matchData.team1 || ''} vs ${matchData.team2 || ''} | ${inningText}`;
         
         let inningNameStr = (matchData.inning === 1) ? "1st Inning" : "2nd Inning";
@@ -859,6 +867,8 @@
                 }
             }
 
+            // Mark that this over is complete. The popup is opened exactly once.
+            newBowlerPopupPending = true;
             saveAndRefresh();
             setTimeout(() => {
                 triggerNewBowlerPopup();
@@ -1007,16 +1017,26 @@
     }
 
     function triggerNewBowlerPopup() {
-        let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
+        const totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
+
+        // Never ask for a bowler after the final ball of the innings.
         if (matchData.balls >= totalBallsAllowed) {
+            newBowlerPopupPending = false;
             handleInningEnd();
             return;
         }
 
+        // IMPORTANT: only one New Bowler popup may be active for one completed over.
+        if (!newBowlerPopupPending) return;
+        if (document.getElementById('popupModal').style.display === 'flex' && popupType === 'new_bowler') return;
+
         popupType = 'new_bowler';
-        document.getElementById('modalTitle').innerText = `🔄 ઓવર પૂરી થઈ! આગામી ઓવર માટે નવો બોલર પસંદ કરો:`;
-        
+        document.getElementById('modalTitle').innerText = '🔄 ઓવર પૂરી થઈ! આગામી ઓવર માટે નવો બોલર પસંદ કરો:';
+
         teamsRef.once('value', (snapshot) => {
+            // Another callback may have already completed the selection.
+            if (!newBowlerPopupPending || popupType !== 'new_bowler') return;
+
             let savedTeams = snapshot.val() || {};
             let bowlingObj = null;
 
@@ -1027,11 +1047,12 @@
                 }
             }
 
-            let bowlingPlayers = (bowlingObj && bowlingObj.players) ? bowlingObj.players : [];
+            // Fallback to existing bowling stats if team data is unavailable.
+            let bowlingPlayers = (bowlingObj && bowlingObj.players) ? bowlingObj.players : Object.keys(matchData.bowlerStats || {});
 
             let html = '<select id="popupSelect"><option value="">-- Select New Bowler --</option>';
             bowlingPlayers.forEach(p => {
-                if (p !== matchData.lastBowler) {
+                if (p && p !== matchData.lastBowler) {
                     html += `<option value="${p}">${p}</option>`;
                 }
             });
@@ -1277,6 +1298,9 @@
 
         saveStateBeforeAction();
 
+        // ------------------------------------------------------------
+        // START INNINGS
+        // ------------------------------------------------------------
         if (popupType === 'start_inning') {
             let s = document.getElementById('p1').value;
             let ns = document.getElementById('p2').value;
@@ -1303,26 +1327,52 @@
 
             initializePlayerStats(s);
             if (matchData.nonStriker !== '-') initializePlayerStats(matchData.nonStriker);
-            
             if (matchData.batsmanStats[s]) matchData.batsmanStats[s].status = 'batting';
             if (matchData.nonStriker !== '-' && matchData.batsmanStats[matchData.nonStriker]) {
                 matchData.batsmanStats[matchData.nonStriker].status = 'batting';
             }
-
             initializeBowlerStats(b);
-        } else if (popupType === 'new_bowler') {
-            let newBowler = document.getElementById('popupSelect').value;
+
+            document.getElementById('popupModal').style.display = 'none';
+            saveAndRefresh();
+            popupType = '';
+            return;
+        }
+
+        // ------------------------------------------------------------
+        // NEW BOWLER: THIS IS THE FINAL STEP OF AN OVER.
+        // Do NOT run the wicket/over logic again here.
+        // ------------------------------------------------------------
+        if (popupType === 'new_bowler') {
+            let select = document.getElementById('popupSelect');
+            let newBowler = select ? select.value : '';
+
             if (!newBowler) {
                 alert('કૃપા કરીને નવો બોલર સિલેક્ટ કરો!');
                 return;
             }
+
             matchData.bowler = newBowler;
             initializeBowlerStats(newBowler);
-        } else if (popupType === 'new_batsman' || popupType === 'retire_hurt') {
-            let selectedVal = document.getElementById('popupSelect').value;
-            let isRetireHurt = (popupType === 'retire_hurt');
+            newBowlerPopupPending = false;
 
+            document.getElementById('popupModal').style.display = 'none';
+            popupType = '';
+            saveAndRefresh();
+
+            // IMPORTANT: return here. Otherwise the just-completed 6th ball
+            // would trigger the New Bowler popup again.
+            return;
+        }
+
+        // ------------------------------------------------------------
+        // NEW BATSMAN / RETIRE HURT
+        // ------------------------------------------------------------
+        if (popupType === 'new_batsman' || popupType === 'retire_hurt') {
+            let selectedVal = document.getElementById('popupSelect').value;
+            const isRetireHurt = (popupType === 'retire_hurt');
             let activeBatsman = matchData.striker;
+
             if (matchData.batsmanStats[activeBatsman]) {
                 if (isRetireHurt) {
                     matchData.batsmanStats[activeBatsman].status = 'retire_hurt';
@@ -1335,9 +1385,9 @@
             }
 
             if (!isRetireHurt) {
-                matchData.balls += 1; 
+                matchData.balls += 1;
                 if (!matchData.currentOverBalls) matchData.currentOverBalls = [];
-                matchData.currentOverBalls.push("W");
+                matchData.currentOverBalls.push('W');
 
                 let bowler = matchData.bowler;
                 initializeBowlerStats(bowler);
@@ -1345,53 +1395,64 @@
                 matchData.bowlerStats[bowler].wickets += 1;
             }
 
-            if (selectedVal && selectedVal !== "-") {
+            if (selectedVal && selectedVal !== '-') {
                 matchData.striker = selectedVal;
+                if (!matchData.battingOrder) matchData.battingOrder = [];
                 if (!matchData.battingOrder.includes(selectedVal)) {
                     matchData.battingOrder.push(selectedVal);
                 }
                 initializePlayerStats(selectedVal);
-                
                 if (matchData.batsmanStats[selectedVal]) {
                     matchData.batsmanStats[selectedVal].status = 'batting';
                 }
+            } else if (matchData.nonStriker && matchData.nonStriker !== '-') {
+                matchData.striker = matchData.nonStriker;
+                matchData.nonStriker = '-';
             } else {
-                if (matchData.nonStriker && matchData.nonStriker !== '-') {
-                    matchData.striker = matchData.nonStriker;
-                    matchData.nonStriker = '-';
-                } else {
-                    matchData.striker = '';
-                    matchData.nonStriker = '-';
-                }
+                matchData.striker = '';
+                matchData.nonStriker = '-';
             }
 
-            if (!isRetireHurt && matchData.balls > 0 && matchData.balls % 6 === 0) {
+            // A wicket on ball 6 ends the over. Do not ask for the bowler here
+            // until the batsman popup has been submitted and the wicket is saved.
+            const isOverEndWicket = !isRetireHurt && matchData.balls > 0 && matchData.balls % 6 === 0;
+            if (isOverEndWicket) {
                 matchData.lastBowler = matchData.bowler;
                 matchData.currentOverBalls = [];
-                
+
+                // Swap only when both batsmen exist.
                 if (matchData.nonStriker && matchData.nonStriker !== '-') {
                     let temp = matchData.striker;
                     matchData.striker = matchData.nonStriker;
                     matchData.nonStriker = temp;
                 }
-            }
-        }
 
-        document.getElementById('popupModal').style.display = 'none';
-        saveAndRefresh();
-        
-        let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
-        if (matchData.balls >= totalBallsAllowed) {
-            handleInningEnd();
+                newBowlerPopupPending = true;
+            }
+
+            document.getElementById('popupModal').style.display = 'none';
+            popupType = '';
+            saveAndRefresh();
+
+            let totalBallsAllowed = parseInt(matchData.totalOvers) * 6;
+            if (matchData.balls >= totalBallsAllowed) {
+                newBowlerPopupPending = false;
+                handleInningEnd();
+                return;
+            }
+
+            if (isOverEndWicket) {
+                // Open exactly once, after the wicket/batsman selection is saved.
+                setTimeout(() => triggerNewBowlerPopup(), 100);
+            } else {
+                checkInningOrOverCompletion();
+            }
             return;
         }
 
-        let isLastBallWicket = (!isRetireHurt && matchData.balls > 0 && matchData.balls % 6 === 0);
-        if (isLastBallWicket && matchData.striker) {
-            triggerNewBowlerPopup();
-        } else {
-            checkInningOrOverCompletion();
-        }
+        // Unknown popup type: close safely.
+        document.getElementById('popupModal').style.display = 'none';
+        popupType = '';
     }
 
     function saveAndRefresh() {

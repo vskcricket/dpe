@@ -513,7 +513,7 @@
                     });
                 }
 
-                db.ref('activeTeams').once('value', (teamSnapshot) => {
+                db.ref('teams').once('value', (teamSnapshot) => {
                     const teamData = teamSnapshot.val();
                     if (teamData) {
                         if (teamData.team1) {
@@ -533,7 +533,7 @@
             });
         }
 
-        db.ref('activeTeams').on('value', (snapshot) => {
+        db.ref('teams').on('value', (snapshot) => {
             const teamData = snapshot.val();
             if (teamData) {
                 if (teamData.team1) {
@@ -715,17 +715,13 @@
                 return;
             }
 
-            const activeTeamsRef = db.ref('activeTeams');
-            const historyTeamsRef = db.ref('teams');
+            const teamsRef = db.ref('teams');
+            const historyTeamsRef = db.ref('historyTeams'); // જો હિસ્ટ્રી સેવ કરવી હોય તો
 
-            Promise.all([
-                activeTeamsRef.set({
-                    team1: { name: team1Name, players: team1Players },
-                    team2: { name: team2Name, players: team2Players }
-                }),
-                historyTeamsRef.push({ name: team1Name, players: team1Players }),
-                historyTeamsRef.push({ name: team2Name, players: team2Players })
-            ])
+            teamsRef.set({
+                team1: { name: team1Name, players: team1Players },
+                team2: { name: team2Name, players: team2Players }
+            })
             .then(() => {
                 sendBothTeamsToTelegram(team1Name, team1Players, team2Name, team2Players);
             })
