@@ -444,7 +444,7 @@
 
     <!-- Master Action Buttons -->
     <div class="footer-action">
-        <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">🚀 Save Teams & Send Telegram</button>
+        <button class="action-btn" onclick="saveBothTeamsAndSendTelegram()">🚀 Save Teams </button>
         <button class="action-btn" style="background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);" onclick="generateAndShareWhatsAppImage()">📤 WhatsApp પર ટીમ ઈમેજ મોકલો</button>
     </div>
 
@@ -465,7 +465,7 @@
     <div id="posterContainerWrapper">
         <div class="squad-poster" id="squadPosterElement">
             <div class="poster-header">
-                <h1>🏏 Gully Cricket Match 🏏</h1>
+                <h1>🏏 VSK-DPE Cricket Match 🏏</h1>
                 <p>Official Team Squads Announcement</p>
             </div>
             <div class="poster-teams-grid">
@@ -479,7 +479,7 @@
                 </div>
             </div>
             <div class="poster-footer">
-                Powered by Gully Cricket Scorer & Pro Match Visualizer
+                Created by Vishant Prajapati
             </div>
         </div>
     </div>
@@ -762,7 +762,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
-                    alert('ટીમ સફળતાપૂર્વક કાયમી સેવ થઈ ગઈ અને ટેલિગ્રામ પર મોકલાઈ ગઈ!');
+                    alert('ટીમ સફળતાપૂર્વક કાયમી સેવ થઈ છે.');
                 } else {
                     alert('ટીમ સેવ થઈ ગઈ, પણ Telegram પર મેસેજ મોકલવામાં ભૂલ છે: ' + data.description);
                 }
